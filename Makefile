@@ -1,8 +1,8 @@
 
 init:
-    pip install -r requirements.txt
+	pipenv install -r requirements.txt
 
 test:
-    py.test tests
+	pipenv run python -m unittest discover tests
 
 .PHONY: init test

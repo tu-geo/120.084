@@ -18,7 +18,7 @@ setup(
     long_description=readme,
     author='Jürgen Fredriksosn',
     author_email='jiargei@gmail.com',
-    url='https://github.com/kennethreitz/samplemod',
+    url='https://github.com/tu-geo/120.084/tree/prg1',
     license=license,
     packages=find_packages(exclude=('tests', 'docs'))
 )
