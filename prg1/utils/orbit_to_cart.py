@@ -10,11 +10,14 @@ TO_E = 403200  # ??
 
 def orbit_to_cart(ke, nps, t0, ti, eps=1e-10):
     """
+        Calculate cartesian coordinates for a setllite at a specific time
+
         :param ke: Kepler elements
         :type ke: KeplerElements
         :param nps: Nuisance parameter set
         :type nps: NuisanceParameterSet
-        :param t: Time
+        :param t0: Start time of orbital parameters
+        :param ti: Time for which coordinates shall be calculated
         
         :returns: Geocentric Point at time for orbital parameters
         :rtype: Geocentric Point
