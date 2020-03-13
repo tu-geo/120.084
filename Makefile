@@ -1,8 +1,8 @@
 
 init:
-    pip install -r requirements.txt
+	pipenv install -r requirements.txt
 
 test:
-    py.test tests
+	pipenv run py.test tests
 
 .PHONY: init test
