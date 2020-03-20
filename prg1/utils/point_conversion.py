@@ -136,7 +136,7 @@ def get_azimuth_and_elevation(point_station, point_satellite):
     elevation = np.arccos((
         np.cos(lat_sta) * np.cos(lon_sta) * diff_xyz.x + np.cos(lat_sta) * np.sin(lon_sta) * diff_xyz.y + np.sin(lat_sta) * diff_xyz.z
     ) / diff_l)
-    print(azimuth, elevation)
+    #print(azimuth, elevation)
 
     # azimuth = np.pi + np.arctan2(np.tan(lon_diff), np.sin(lat_sta))
     # elevation = np.arctan2(

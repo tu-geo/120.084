@@ -3,6 +3,7 @@ import logging
 import math
 import os
 import pprint
+import datetime
 
 from prg1.models.kepler_element_set import KeplerElementSet
 from prg1.models.nuisance_parameter_set import NuisanceParameterSet
@@ -29,16 +30,13 @@ class NoradImportTestCase(unittest.TestCase):
             i=51.6448,
             w=257.3473
         )
+        self.timestamp = datetime.datetime(2006, 2, 9, 20, 26, 0)
 
     def test_file_read(self):
         with open(self.test_file, "r") as tle:
             tle_str = "".join(tle.readlines())
             tle = KeplerElementSet.read_tle(tle_str)
+            kepler_element_set = KeplerElementSet.from_dict(tle)
 
-            print("\n\n{}\n".format(tle_str))
-            pprint.pprint(tle)
-
-            major_axis = math.pow(GE/math.pow(tle["mean_motion"]*2*math.pi/86400, 2), 1.0/3.0)
-            print("a: {}".format(major_axis))
-
-            self.assertTrue(False)
+            self.assertTrue(math.fabs(tle["major_axis"] - self.kepler_element_set.a) <= 1e-3)
+            self.assertAlmostEqual(self.kepler_element_set.a, kepler_element_set.a, places=3)

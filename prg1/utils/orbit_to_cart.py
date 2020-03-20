@@ -1,12 +1,13 @@
 import math
 
 from prg1.models.point import GeocentricPoint
+from prg1.models.nuisance_parameter_set import NuisanceParameterSet
 from prg1.utils.constants import GE, OMEGA_E_DOT
 
 TO_E = 403200  # ??
 
 
-def orbit_to_cart(ke, nps, t0, ti, eps=1e-10):
+def orbit_to_cart(ke, nps, t0, ti, t0e=TO_E, eps=1e-10):
     """
         Calculate cartesian coordinates for a setllite at a specific time
 
@@ -20,6 +21,9 @@ def orbit_to_cart(ke, nps, t0, ti, eps=1e-10):
         :returns: Geocentric Point at time for orbital parameters
         :rtype: Geocentric Point
     """
+
+    if nps is None:
+        nps = NuisanceParameterSet()
     # Zeitdifferenz
     delta_t = ti - t0
     # korrektur der mittleren Bewegung
@@ -53,7 +57,7 @@ def orbit_to_cart(ke, nps, t0, ti, eps=1e-10):
     # Korrigierte Inklination
     i_k = ke.i + nps.i_dot * delta_t + delta_i
     # Korrigierte Rektaszension
-    omega_k = ke.omega - (OMEGA_E_DOT - nps.omega_dot) * delta_t - OMEGA_E_DOT * TO_E
+    omega_k = ke.omega - (OMEGA_E_DOT - nps.omega_dot) * delta_t - OMEGA_E_DOT * t0e
     # Position in der Bahnebene
     x_ks = r_k * math.cos(u_k)
     y_ks = r_k * math.sin(u_k)

@@ -3,7 +3,7 @@ import logging
 import datetime
 import math
 
-from prg1.utils.time_conversions import frac_to_time, time_to_frac
+from prg1.utils.time_conversion import frac_to_time, time_to_frac
 
 
 logger = logging.getLogger(__name__)
