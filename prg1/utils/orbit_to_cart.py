@@ -1,10 +1,8 @@
 import math
 
 from prg1.models.point import GeocentricPoint
+from prg1.utils.constants import GE, OMEGA_E_DOT
 
-
-GE = 3.986005e14  # [m^3/s^2] Geozentrische Gravitationskonstante
-OMEGA_E_DOT = 7.2921151467e-5  # [rad/s] Erdrotatiosgeschwindigkeit
 TO_E = 403200  # ??
 
 

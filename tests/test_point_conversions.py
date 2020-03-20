@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
-class OrbitalTestCase(unittest.TestCase):
+class PointConversionTestCase(unittest.TestCase):
     
     def setUp(self):
         self.point_cartesian = GeocentricPoint(4134646.623794, 1180600.051953, 4696218.309687)
@@ -45,5 +45,5 @@ class OrbitalTestCase(unittest.TestCase):
         satellite = GeographicPoint(station.lon, station.lat, 2000e3)
         #enu = to_local_enu(station, satellite)
         a, e = get_azimuth_and_elevation(station, satellite)
-        print(a, e)
-        self.assertTrue(False)
+        #print(a, e)
+        #self.assertTrue(False)

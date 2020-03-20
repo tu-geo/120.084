@@ -26,4 +26,4 @@ class PolarPlotTestCase(unittest.TestCase):
         ]
         
     def test_plot_creation(self):
-        generate_plot(orbit_list=self.orbit_list)
+        generate_plot(orbit_list=self.orbit_list, show_plot=False)
