@@ -119,11 +119,32 @@ def get_azimuth_and_elevation(point_station, point_satellite):
     lon_sat = d2r(point_satellite.lon)  # P
     lon_diff = lon_sta - lon_sat
 
-    azimuth = np.pi + np.arctan2(np.tan(lon_diff), np.sin(lat_sta))
-    elevation = np.arctan2(
-        np.cos(lat_sta) * np.cos(lon_diff) - 0.1513,
-        np.sqrt(1.0 - np.power(np.cos(lat_sta * np.cos(lon_diff)), 2))
+    sta_xyz = convert_ellipsoidal_to_cartesian(point_station)
+    sat_xyz = convert_ellipsoidal_to_cartesian(point_satellite)
+    diff_xyz = sat_xyz - sta_xyz
+    diff_vec = np.array((
+        (diff_xyz.x),
+        (diff_xyz.y),
+        (diff_xyz.z)
+    ))
+    diff_l = np.linalg.norm(diff_vec)
+
+    azimuth = np.arctan2(
+        - np.sin(lon_sta) * diff_xyz.x + np.cos(lon_sta) * diff_xyz.y,
+        - np.sin(lat_sta) * np.cos(lon_sta) * diff_xyz.x - np.sin(lat_sta) * np.sin(lon_sta) * diff_xyz.y + np.cos(lat_sta) * diff_xyz.z
     )
+    elevation = np.arccos((
+        np.cos(lat_sta) * np.cos(lon_sta) * diff_xyz.x + np.cos(lat_sta) * np.sin(lon_sta) * diff_xyz.y + np.sin(lat_sta) * diff_xyz.z
+    ) / diff_l)
+    print(azimuth, elevation)
+
+    # azimuth = np.pi + np.arctan2(np.tan(lon_diff), np.sin(lat_sta))
+    # elevation = np.arctan2(
+    #    np.cos(lat_sta) * np.cos(lon_diff),  # - 0.1513,
+    #    np.sqrt(1.0 - np.power(np.cos(lat_sta * np.cos(lon_diff)), 2))
+    # )
+    # print(azimuth, elevation)
+
     return [r2d(azimuth), r2d(elevation)]
 
 

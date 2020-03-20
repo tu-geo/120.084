@@ -42,6 +42,7 @@ class OrbitalTestCase(unittest.TestCase):
     def test_local_enu(self):
         station = GeographicPoint(12.879958, 47.7309909, 500.0)
         satellite = GeographicPoint(19.2, 0.0, 2000e3)
+        satellite = GeographicPoint(station.lon, station.lat, 2000e3)
         #enu = to_local_enu(station, satellite)
         a, e = get_azimuth_and_elevation(station, satellite)
         print(a, e)

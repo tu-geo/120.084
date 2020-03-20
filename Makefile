@@ -1,8 +1,8 @@
 
 init:
-	pipenv install -r requirements.txt
+	python3 -m pipenv install --three -r requirements.txt
 
 test:
-	pipenv run py.test tests
+	python3 -m pipenv run python setup.py test
 
 .PHONY: init test
