@@ -67,7 +67,7 @@ def convert_cartesian_to_ellipsoidal(src_point, axis_major=ELLIPSOID_AXIS_MAJOR,
     logger.debug("Needed {} iterations".format(i))
     phi_rad = phi_new
     ele = h_i
-    return GeographicPoint(r2d(lon_rad), r2d(phi_rad), ele)
+    return GeographicPoint(r2d(lon_rad) % 360, r2d(phi_rad), ele)
 
 
 def to_local_enu(point_station, point_satellite):
@@ -148,3 +148,75 @@ def get_azimuth_and_elevation(point_station, point_satellite):
     return [r2d(azimuth), r2d(elevation)]
 
 
+
+def xyz2ell(src_point, axis_major, flattening):
+    """
+    Geocentric -> Geographic
+
+    :type point: GeocentricPoint
+    :type ellipsoid: Ellipsoid
+    :rtype: GeographicPoint
+
+    see header of ell2xyz
+
+    input:  x     x-coordinate in meters
+            y     y coordinate in meters
+            z     z-coordinate in meters
+            ellipsoid  input of type ell (defined in module trafo)
+    output: lon   ellipsoidal longitude in degree
+            lat   ellipsoidal (geodetic) latitude idegreee
+            h     ellipsoidal height in meters
+    """
+
+    # check for numeric and dim must be one
+
+    x = src_point.x
+    y = src_point.y
+    z = src_point.z
+
+    #a = ellipsoid.a
+    #b = ellipsoid.b
+    #e2 = ellipsoid.e2
+    a = axis_major
+    b = a * (1.0 - flattening)
+    e2 = 2 * flattening - np.power(flattening, 2)
+
+
+    dlon = 0.0  # ellipsoid.prime_meridian.offset_greenwich  # delta to greenwich in degrees
+
+    p = np.sqrt(x**2 + y**2)
+
+    curlon = np.arctan2(y, x)
+    if p == 0:
+        #logger.warn("point is at pole -> lon is arbitrary (set to 0)")
+        curlon = 0
+        if z < 0:  # south pole:
+            curlat = -np.pi / 2
+            curh = -z - b
+        else:  # north pole
+            curh = z - b
+            curlon = np.pi / 2
+
+    N = 0
+    h = 0
+    lastlat = 99999
+    curlat = np.arctan2(z, (1 - e2) * p)
+    maxk = 1000000
+    k = 1
+
+    while abs(curlat - lastlat) > 1e-15:
+        k += 1
+        N = a / np.sqrt(1 - e2 * np.power(np.sin(lastlat), 2))
+        h = p / np.cos(lastlat) - N
+        lastlat = curlat
+        curlat = np.arctan2(z, (1 - e2 * N / (N + h)) * p)
+        # break when max num is reached
+        if k == maxk:
+            break
+
+    return GeographicPoint(
+        #name=point.name,
+        lat=r2d(curlat),
+        lon=r2d(curlon),
+        ele=h
+    )

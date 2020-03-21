@@ -11,7 +11,7 @@ from prg1.utils.polar_plot import generate_plot
 from prg1.utils.orbit_to_cart import orbit_to_cart
 from prg1.utils.angle_conversion import rad_to_deg
 from prg1.utils.point_conversion import convert_ellipsoidal_to_cartesian, \
-    convert_cartesian_to_ellipsoidal, get_azimuth_and_elevation
+    convert_cartesian_to_ellipsoidal, get_azimuth_and_elevation, xyz2ell
 
 class PolarPlotTestCase(unittest.TestCase):
 
@@ -22,7 +22,7 @@ class PolarPlotTestCase(unittest.TestCase):
 
         max_angle = 360
 
-        self.duration = 2880
+        self.duration = int(1440)
 
         for i in range(max_angle):
             e = i / (max_angle / 90.0)
@@ -59,6 +59,8 @@ class PolarPlotTestCase(unittest.TestCase):
         elevation = []
         azimuth = []
 
+        nuisance_parameter_set = None
+
         # nuisance_parameter_set = NuisanceParameterSet(
         #     delta_n=0.457447625958e-8,
         #     omega_dot=-0.799283293357e-8, i_dot=-0.560380484954e-9,
@@ -69,11 +71,26 @@ class PolarPlotTestCase(unittest.TestCase):
 
         for i in range(self.duration):
             ti = t_start + datetime.timedelta(minutes=i + 1)
-            pic = orbit_to_cart(ke=kepler_element_set, nps=None, t0=t0.timestamp(), ti=ti.timestamp())
+            if ti.weekday() == 6:
+                days = 0
+            else:
+                days = ti.weekday() +1
+            last_sunday = ti - datetime.timedelta(days=days,
+                hours=ti.hour, minutes=ti.minute, seconds=ti.second,
+                microseconds=ti.microsecond
+            )
+            t0e = (ti - last_sunday).total_seconds()
+            # print("t0e: {:.4f}".format(t0e))
+
+            pic = orbit_to_cart(ke=kepler_element_set, nps=nuisance_parameter_set,
+                t0=t0.timestamp(), ti=ti.timestamp(), t0e=t0e)
             pig = convert_cartesian_to_ellipsoidal(axis_major=kepler_element_set.a,
                 flattening=tle["flattening"],
                 src_point=pic
             )
+            # print(pig)
+            # pig = xyz2ell(src_point=pic, axis_major=kepler_element_set.a, flattening=tle["flattening"])
+            # print(pig)
             a, e = get_azimuth_and_elevation(p0g, pig)
 
             # if e > 180:
@@ -107,13 +124,14 @@ class PolarPlotTestCase(unittest.TestCase):
         # generate azimuths and elevations
         this_dir = os.path.dirname(os.path.realpath(__file__))
         test_file = os.path.join(this_dir, "20200320-active_satellites.txt")
-        sat_filter = ["TERRA"]
-        #test_file = os.path.join(this_dir, "__norad_37158.txt")
+        sat_filter = ["LAGEOS", "GRACE", "ICE", "CRYO"]
+        sat_filter = []
         orbit_list = []
         p0c = GeocentricPoint(x=1130745.549, y=-4831368.033, z=3994077.168)
         p0g = convert_cartesian_to_ellipsoidal(src_point=p0c)
-        t_start = datetime.datetime(year=2020, month=3, day=20).replace(tzinfo=datetime.timezone.utc)
-        max_satellites = 5
+        # print(p0g)
+        t_start = datetime.datetime(year=2020, month=3, day=20, hour=20, minute=57, second=13).replace(tzinfo=datetime.timezone.utc)
+        max_satellites = 20
         j = 0
 
         with open(test_file, "r") as tle:
@@ -132,7 +150,7 @@ class PolarPlotTestCase(unittest.TestCase):
                         orbit_list += result
                         j += 1
 
-                if j > 10:
+                if j > max_satellites:
                     break
                 i += 1
 

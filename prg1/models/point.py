@@ -19,7 +19,7 @@ class GeocentricPoint(object):
         return math.sqrt(math.pow(self.x, 2) + math.pow(self.y, 2) + math.pow(self.z, 2))
         
     def __str__(self):
-        return "GeocentricPoint(x={:.4f}, y={:.4f}, z={:.4f}".format(self.x, self.y, self.z)
+        return "GeocentricPoint(x={:.4f}, y={:.4f}, z={:.4f})".format(self.x, self.y, self.z)
         
 
 class GeographicPoint(object):
@@ -37,5 +37,5 @@ class GeographicPoint(object):
         return GeographicPoint(self.lon + other.lon, self.lat + other.lat, self.ele - other.ele)
 
     def __str__(self):
-        return "GeographicPoint(lon={:.8f}, lat={:.8f}, ele={:.4f}".format(self.lon, self.lat, self.ele)
+        return "GeographicPoint(lon={:.8f}, lat={:.8f}, ele={:.4f})".format(self.lon, self.lat, self.ele)
         

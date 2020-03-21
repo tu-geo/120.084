@@ -49,13 +49,17 @@ def orbit_to_cart(ke, nps, t0, ti, t0e=T_0E, eps=1e-10):
     # In_klinationskorrektur
     delta_i = nps.c_ic * math.cos(2.0 * phi_k) + nps.c_is * math.sin(2.0 * phi_k)
     # Korrigiertes Argument der Breite
-    u_k = phi_k + delta_u
+    u_k = phi_k
+    u_k += delta_u
     # Korrigierter Radius
-    r_k = ke.a * (1.0 - ke.e * math.cos(e_k)) + delta_r
+    r_k = ke.a * (1.0 - ke.e * math.cos(e_k))
+    r_k += delta_r
     # Korrigierte Inklination
-    i_k = ke.i + nps.i_dot * delta_t + delta_i
+    i_k = ke.i
+    i_k += nps.i_dot * delta_t + delta_i
     # Korrigierte Rektaszension
-    omega_k = ke.omega - (OMEGA_E_DOT - nps.omega_dot) * delta_t - OMEGA_E_DOT * T_0E
+    omega_k = ke.omega - OMEGA_E_DOT * T_0E
+    omega_k -= (OMEGA_E_DOT - nps.omega_dot) * delta_t
     # Position in der Bahnebene
     x_ks = r_k * math.cos(u_k)
     y_ks = r_k * math.sin(u_k)
