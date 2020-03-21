@@ -12,7 +12,7 @@ def generate_plot(orbit_list, show_plot=True):
     tick_list = range(0, rmax + ticksize, ticksize)
 
     for orbit in orbit_list:
-        ax.plot(orbit.get_azimuth_array(), orbit.get_elevation_polar_array(), label=orbit.satellite_id)
+        ax.plot(orbit.get_azimuth_radian_array(), orbit.get_elevation_polar_array(), label=orbit.satellite_id)
 
     ax.set_rmax(rmax)
     ax.legend()

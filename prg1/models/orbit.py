@@ -10,10 +10,14 @@ class Orbit(object):
         self.satellite_id = satellite_id
 
     def get_azimuth_array(self):
-        return np.array(self.__azimuth_list)
+        return self.__azimuth_list
+
+    def get_azimuth_radian_array(self):
+        return np.radians(self.get_azimuth_array())
 
     def get_elevation_array(self):
-        return np.array(self.__elevation_list)
+        return self.__elevation_list
 
     def get_elevation_polar_array(self):
-        return np.array([90 - v for v in self.__elevation_list])
+        #return self.__elevation_list
+        return np.array([90 - v for v in self.__elevation_list.tolist()])
