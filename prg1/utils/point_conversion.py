@@ -55,7 +55,7 @@ def convert_cartesian_to_ellipsoidal(src_point, axis_major=ELLIPSOID_AXIS_MAJOR,
     # Determine Latitude
     p = np.sqrt(np.power(x, 2) + np.power(y, 2))
     phi_new = np.arctan2(z, (1 - e2) * p)  # Initial latidude
-    delta_e = eps+1
+    delta_e = eps + 1
     i = 0
     while delta_e >= eps and i < 20:
         i += 1
@@ -70,40 +70,40 @@ def convert_cartesian_to_ellipsoidal(src_point, axis_major=ELLIPSOID_AXIS_MAJOR,
     return GeographicPoint(r2d(lon_rad) % 360, r2d(phi_rad), ele)
 
 
-def to_local_enu(point_station, point_satellite):
-    """
-        Get local vector from station to satellite
+# def to_local_enu(point_station, point_satellite):
+#     """
+#         Get local vector from station to satellite
 
-        :param point_station: Ellipsoidal coordinates of station
-        :param point_satellite: Ellipsoidal coordinates of satellite
-        :returns: vector ENU from station to satellite
-    """
-    assert isinstance(point_satellite, GeographicPoint)
-    assert isinstance(point_station, GeographicPoint)
+#         :param point_station: Ellipsoidal coordinates of station
+#         :param point_satellite: Ellipsoidal coordinates of satellite
+#         :returns: vector ENU from station to satellite
+#     """
+#     assert isinstance(point_satellite, GeographicPoint)
+#     assert isinstance(point_station, GeographicPoint)
 
-    phi = d2r(point_station.lat)
-    lam = d2r(point_station.lon)
+#     phi = d2r(point_station.lat)
+#     lam = d2r(point_station.lon)
 
-    sta_xyz = convert_ellipsoidal_to_cartesian(point_station)
-    sat_xyz = convert_ellipsoidal_to_cartesian(point_satellite)
+#     sta_xyz = convert_ellipsoidal_to_cartesian(point_station)
+#     sat_xyz = convert_ellipsoidal_to_cartesian(point_satellite)
     
-    diff_xyz = sat_xyz - sta_xyz
-    diff_vec = np.array((
-        (diff_xyz.x),
-        (diff_xyz.y),
-        (diff_xyz.z)
-    ))
+#     diff_xyz = sat_xyz - sta_xyz
+#     diff_vec = np.array((
+#         (diff_xyz.x),
+#         (diff_xyz.y),
+#         (diff_xyz.z)
+#     ))
 
-    # Create Rotation Matrix
-    rotation_e = np.array((
-        (-np.sin(lam),                  np.cos(lam),                   0.0),
-        (-np.sin(phi) * np.cos(lam), -np.sin(phi) * np.sin(lam), np.cos(phi)),
-        (np.cos(phi) * np.cos(lam),  np.cos(phi) * np.sin(lam),  np.sin(phi))
-    ))
+#     # Create Rotation Matrix
+#     rotation_e = np.array((
+#         (-np.sin(lam),                  np.cos(lam),                   0.0),
+#         (-np.sin(phi) * np.cos(lam), -np.sin(phi) * np.sin(lam), np.cos(phi)),
+#         (np.cos(phi) * np.cos(lam),  np.cos(phi) * np.sin(lam),  np.sin(phi))
+#     ))
 
-    # Create local vector ENU
-    enu_vec = np.dot(rotation_e, diff_vec/np.linalg.norm(diff_vec))
-    return enu_vec
+#     # Create local vector ENU
+#     enu_vec = np.dot(rotation_e, diff_vec/np.linalg.norm(diff_vec))
+#     return enu_vec
 
 
 def get_azimuth_and_elevation(point_station, point_satellite):
@@ -116,8 +116,8 @@ def get_azimuth_and_elevation(point_station, point_satellite):
     """
     lat_sta = d2r(point_station.lat)  # B
     lon_sta = d2r(point_station.lon)  # L
-    lon_sat = d2r(point_satellite.lon)  # P
-    lon_diff = lon_sta - lon_sat
+    #lon_sat = d2r(point_satellite.lon)  # P
+    #lon_diff = lon_sta - lon_sat
 
     sta_xyz = convert_ellipsoidal_to_cartesian(point_station)
     sat_xyz = convert_ellipsoidal_to_cartesian(point_satellite)
@@ -138,7 +138,6 @@ def get_azimuth_and_elevation(point_station, point_satellite):
     ) / diff_l)
 
     return [r2d(azimuth), r2d(elevation)]
-
 
 
 def xyz2ell(src_point, axis_major, flattening):

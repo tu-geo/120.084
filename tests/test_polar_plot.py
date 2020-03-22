@@ -18,20 +18,20 @@ from prg1.utils.point_conversion import convert_ellipsoidal_to_cartesian, \
 class PolarPlotTestCase(unittest.TestCase):
 
     def setUp(self):
+
+        # Declaration part
+        self.duration = int(1440)  # 24*60
+        self.max_satellites = 10
+        self.station_geocentric = GeocentricPoint(x=1130745.549, y=-4831368.033, z=3994077.168)
+        # Day of observation
+        self.t_start = datetime.datetime(year=2020, month=3, day=20, hour=0, minute=0, second=0).replace(tzinfo=datetime.timezone.utc)
+
+
         elevation = []
         azimuth1 = []
         azimuth2 = []
 
         max_angle = 360
-
-        # Declaration part
-        self.duration = int(1440)
-        self.max_satellites = 3
-        self.station_geocentric = GeocentricPoint(x=1130745.549, y=-4831368.033, z=3994077.168)
-
-        # Day of observation
-        self.t_start = datetime.datetime(year=2020, month=3, day=20, hour=0, minute=0, second=0).replace(tzinfo=datetime.timezone.utc)
-
         for i in range(max_angle):
             e = i / (max_angle / 90.0)
             elevation.append(e)
@@ -87,9 +87,13 @@ class PolarPlotTestCase(unittest.TestCase):
                 microseconds=ti.microsecond
             )
             t0e = (ti - last_sunday).total_seconds()
+            #t0e = 0.0
 
+            # Orbit to cartesian
             pic = orbit_to_cart(ke=kepler_element_set, nps=nuisance_parameter_set,
                 t0=t0.timestamp(), ti=ti.timestamp(), t0e=t0e)
+
+            # Cartesian to ellipsoidal
             pig = convert_cartesian_to_ellipsoidal(axis_major=kepler_element_set.a,
                 flattening=tle["flattening"],
                 src_point=pic
@@ -154,8 +158,8 @@ class PolarPlotTestCase(unittest.TestCase):
         # generate azimuths and elevations
         this_dir = os.path.dirname(os.path.realpath(__file__))
         test_file = os.path.join(this_dir, "20200320-active_satellites.txt")
-        sat_filter = ["TEMPSAT"]
-        sat_filter = []
+        sat_filter = ["GALILEO"]
+        # sat_filter = []
         orbit_list = []
         p0c = self.station_geocentric
         p0g = convert_cartesian_to_ellipsoidal(src_point=p0c)
