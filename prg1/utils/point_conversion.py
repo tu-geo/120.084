@@ -136,14 +136,6 @@ def get_azimuth_and_elevation(point_station, point_satellite):
     elevation = np.arccos((
         np.cos(lat_sta) * np.cos(lon_sta) * diff_xyz.x + np.cos(lat_sta) * np.sin(lon_sta) * diff_xyz.y + np.sin(lat_sta) * diff_xyz.z
     ) / diff_l)
-    #print(azimuth, elevation)
-
-    # azimuth = np.pi + np.arctan2(np.tan(lon_diff), np.sin(lat_sta))
-    # elevation = np.arctan2(
-    #    np.cos(lat_sta) * np.cos(lon_diff),  # - 0.1513,
-    #    np.sqrt(1.0 - np.power(np.cos(lat_sta * np.cos(lon_diff)), 2))
-    # )
-    # print(azimuth, elevation)
 
     return [r2d(azimuth), r2d(elevation)]
 
@@ -151,6 +143,7 @@ def get_azimuth_and_elevation(point_station, point_satellite):
 
 def xyz2ell(src_point, axis_major, flattening):
     """
+    JUST COMPARING (Transformator.bev.gv.at) convert_cartesian_to_ellipsoidal
     Geocentric -> Geographic
 
     :type point: GeocentricPoint
@@ -174,15 +167,9 @@ def xyz2ell(src_point, axis_major, flattening):
     y = src_point.y
     z = src_point.z
 
-    #a = ellipsoid.a
-    #b = ellipsoid.b
-    #e2 = ellipsoid.e2
     a = axis_major
     b = a * (1.0 - flattening)
     e2 = 2 * flattening - np.power(flattening, 2)
-
-
-    dlon = 0.0  # ellipsoid.prime_meridian.offset_greenwich  # delta to greenwich in degrees
 
     p = np.sqrt(x**2 + y**2)
 

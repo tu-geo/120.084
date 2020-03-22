@@ -2,6 +2,7 @@ import unittest
 import os
 import datetime
 import numpy as np
+import csv
 
 from prg1.models.orbit import Orbit
 from prg1.models.point import GeocentricPoint
@@ -13,6 +14,7 @@ from prg1.utils.angle_conversion import rad_to_deg
 from prg1.utils.point_conversion import convert_ellipsoidal_to_cartesian, \
     convert_cartesian_to_ellipsoidal, get_azimuth_and_elevation, xyz2ell
 
+
 class PolarPlotTestCase(unittest.TestCase):
 
     def setUp(self):
@@ -22,7 +24,13 @@ class PolarPlotTestCase(unittest.TestCase):
 
         max_angle = 360
 
+        # Declaration part
         self.duration = int(1440)
+        self.max_satellites = 3
+        self.station_geocentric = GeocentricPoint(x=1130745.549, y=-4831368.033, z=3994077.168)
+
+        # Day of observation
+        self.t_start = datetime.datetime(year=2020, month=3, day=20, hour=0, minute=0, second=0).replace(tzinfo=datetime.timezone.utc)
 
         for i in range(max_angle):
             e = i / (max_angle / 90.0)
@@ -39,9 +47,21 @@ class PolarPlotTestCase(unittest.TestCase):
         return
         generate_plot(orbit_list=self.orbit_list, show_plot=False)
 
-    def __do_work(self, p0g, t_start, tle_str, sat_filter=[]):
+    def __do_work(self, p0g, t_start, tle_str, sat_filter=[], export_file=""):
         orbit_list = []
         tle = KeplerElementSet.read_tle(tle_str)
+        row_list = []
+        elevation = []
+        azimuth = []
+        fieldnames = ["Timestamp", "SatelliteName", "SatelliteNoradId", "ECEF_X", "ECEF_Y", "ECEF_Z", "Longitude", "Latitude", "height", "azimuth", "elevation"]
+        nuisance_parameter_set = None
+        # nuisance_parameter_set = NuisanceParameterSet(
+        #     delta_n=0.457447625958e-8,
+        #     omega_dot=-0.799283293357e-8, i_dot=-0.560380484954e-9,
+        #     c_us=0.976212322712e-5, c_uc=-0.109896063805e-5,
+        #     c_is=0.428408384323e-7, c_ic=0.763684511185e-7,
+        #     c_rs=-0.207812500000e2, c_rc=0.188562500000e3
+        # )
 
         if sat_filter:
             do_work = False
@@ -56,31 +76,17 @@ class PolarPlotTestCase(unittest.TestCase):
         
         kepler_element_set = KeplerElementSet.from_dict(tle)
         t0 = tle["timestamp"].replace(tzinfo=datetime.timezone.utc)
-        elevation = []
-        azimuth = []
-
-        nuisance_parameter_set = None
-
-        # nuisance_parameter_set = NuisanceParameterSet(
-        #     delta_n=0.457447625958e-8,
-        #     omega_dot=-0.799283293357e-8, i_dot=-0.560380484954e-9,
-        #     c_us=0.976212322712e-5, c_uc=-0.109896063805e-5,
-        #     c_is=0.428408384323e-7, c_ic=0.763684511185e-7,
-        #     c_rs=-0.207812500000e2, c_rc=0.188562500000e3
-        # )
 
         for i in range(self.duration):
             ti = t_start + datetime.timedelta(minutes=i + 1)
-            if ti.weekday() == 6:
-                days = 0
-            else:
-                days = ti.weekday() +1
+            days = 0 if ti.weekday() == 6 else ti.weekday() + 1
+
+            # Get the start of corresponding GPS-Week
             last_sunday = ti - datetime.timedelta(days=days,
                 hours=ti.hour, minutes=ti.minute, seconds=ti.second,
                 microseconds=ti.microsecond
             )
             t0e = (ti - last_sunday).total_seconds()
-            # print("t0e: {:.4f}".format(t0e))
 
             pic = orbit_to_cart(ke=kepler_element_set, nps=nuisance_parameter_set,
                 t0=t0.timestamp(), ti=ti.timestamp(), t0e=t0e)
@@ -92,7 +98,6 @@ class PolarPlotTestCase(unittest.TestCase):
             # pig = xyz2ell(src_point=pic, axis_major=kepler_element_set.a, flattening=tle["flattening"])
             # print(pig)
             a, e = get_azimuth_and_elevation(p0g, pig)
-
             # if e > 180:
             #     print("HÄH")
             #     e = 0
@@ -102,6 +107,18 @@ class PolarPlotTestCase(unittest.TestCase):
                 e = 90 - (e % 90)
 
             #print(a, e)
+
+            # get columns
+            row = [
+                ti.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                tle["satellite_name"],
+                tle["satellite_catalog_number_1"],
+                pic.x, pic.y, pic.z,
+                pig.lon, pig.lat, pig.ele,
+                a, e
+            ]
+            # append rows
+            row_list.append(row)
 
             elevation.append(e)
             azimuth.append(a)
@@ -118,22 +135,33 @@ class PolarPlotTestCase(unittest.TestCase):
         if not orbit_list:
             print("Satellite {} not on Greenbelt's sky".format(tle["satellite_name"]))
 
+        if export_file:
+            export_file = export_file.replace("XXXX", tle["satellite_catalog_number_1"])
+            with open(export_file, "w", newline='') as csvfile:
+                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                writer.writeheader()
+                for row in row_list:
+                    d = {}
+                    for key, value in zip(fieldnames, row):
+                        d[key] = value
+                    #print(row)
+                    #print(d)
+                    writer.writerow(d)
+            
         return orbit_list
 
     def test_plot_sat(self):
         # generate azimuths and elevations
         this_dir = os.path.dirname(os.path.realpath(__file__))
         test_file = os.path.join(this_dir, "20200320-active_satellites.txt")
-        sat_filter = ["LAGEOS", "GRACE", "ICE", "CRYO"]
+        sat_filter = ["TEMPSAT"]
         sat_filter = []
         orbit_list = []
-        p0c = GeocentricPoint(x=1130745.549, y=-4831368.033, z=3994077.168)
+        p0c = self.station_geocentric
         p0g = convert_cartesian_to_ellipsoidal(src_point=p0c)
-        # print(p0g)
-        t_start = datetime.datetime(year=2020, month=3, day=20, hour=20, minute=57, second=13).replace(tzinfo=datetime.timezone.utc)
-        max_satellites = 20
         j = 0
 
+        # Let's get all the satellite's orbits
         with open(test_file, "r") as tle:
             i = 0
             tle_set = []
@@ -144,13 +172,14 @@ class PolarPlotTestCase(unittest.TestCase):
                     tle_str = "".join(tle_set)
                     sat_name = tle_set[0].replace("\n", "").strip()
                     tle_set = []
-                    result = self.__do_work(p0g, t_start, tle_str, sat_filter)
+                    result = self.__do_work(p0g, self.t_start, tle_str, sat_filter, os.path.join(this_dir, "results", "20200320-result-XXXX.csv"))
                     if result:
                         print("Processing -- {}".format(sat_name))
                         orbit_list += result
                         j += 1
 
-                if j > max_satellites:
+                # Stop importing if sufficient orbits are processed
+                if j > self.max_satellites:
                     break
                 i += 1
 
