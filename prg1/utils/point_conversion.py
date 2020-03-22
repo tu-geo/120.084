@@ -50,14 +50,16 @@ def convert_cartesian_to_ellipsoidal(src_point, axis_major=ELLIPSOID_AXIS_MAJOR,
     z = src_point.z
 
     # Determine Longitude
-    lon_rad = np.arctan2(y, x)
+    lam_rad = np.arctan2(y, x)
 
     # Determine Latitude
     p = np.sqrt(np.power(x, 2) + np.power(y, 2))
     phi_new = np.arctan2(z, (1 - e2) * p)  # Initial latidude
     delta_e = eps + 1
     i = 0
-    while delta_e >= eps and i < 20:
+    max_iterations = 20
+    # Iterate until delta_e fits epsilon or max iterations
+    while delta_e >= eps and i < max_iterations:
         i += 1
         phi_old = phi_new
         n_i = axis_major / np.sqrt(1 - e2 * np.power(np.sin(phi_old), 2))
@@ -67,7 +69,7 @@ def convert_cartesian_to_ellipsoidal(src_point, axis_major=ELLIPSOID_AXIS_MAJOR,
     logger.debug("Needed {} iterations".format(i))
     phi_rad = phi_new
     ele = h_i
-    return GeographicPoint(r2d(lon_rad) % 360, r2d(phi_rad), ele)
+    return GeographicPoint(r2d(lam_rad) % 360, r2d(phi_rad), ele)
 
 
 # def to_local_enu(point_station, point_satellite):
@@ -114,10 +116,8 @@ def get_azimuth_and_elevation(point_station, point_satellite):
         :param point_satellite: Ellipsoidal coordinates of satellite
         :returns: azimuth and elevation from station to satellite
     """
-    lat_sta = d2r(point_station.lat)  # B
-    lon_sta = d2r(point_station.lon)  # L
-    #lon_sat = d2r(point_satellite.lon)  # P
-    #lon_diff = lon_sta - lon_sat
+    lat_sta = d2r(point_station.lat)  # Latitude, Phi
+    lon_sta = d2r(point_station.lon)  # Longitude, Lambda
 
     sta_xyz = convert_ellipsoidal_to_cartesian(point_station)
     sat_xyz = convert_ellipsoidal_to_cartesian(point_satellite)
