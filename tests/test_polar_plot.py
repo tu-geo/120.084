@@ -98,19 +98,13 @@ class PolarPlotTestCase(unittest.TestCase):
                 flattening=tle["flattening"],
                 src_point=pic
             )
-            # print(pig)
-            # pig = xyz2ell(src_point=pic, axis_major=kepler_element_set.a, flattening=tle["flattening"])
-            # print(pig)
             a, e = get_azimuth_and_elevation(p0g, pig)
             # if e > 180:
             #     print("HÄH")
             #     e = 0
             if e > 90:
-                #print(e)
                 #e = 180 - e
                 e = 90 - (e % 90)
-
-            #print(a, e)
 
             # get columns
             row = [
