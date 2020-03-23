@@ -131,3 +131,4 @@ dmypy.json
 Leap_Second.dat
 de421.bsp
 deltat.*
+tests/results/*.csv
