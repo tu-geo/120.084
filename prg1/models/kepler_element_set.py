@@ -38,17 +38,24 @@ class KeplerElementSet(object):
         "omega": "right_ascension",
         "i": "inclination",
         "w": "argument_of_perigee",
-        "ts": "timestamp"
+        "t0": "timestamp"
     }
 
-    def __init__(self, m0, e, a, omega, i, w, ts=None):
+    def __init__(self, m0, e, a, omega, i, w, t0=None, **kwars):
         self.m0 = m0  # anomaly
         self.e = e  # eccentricity
         self.a = a  # major axis
         self.omega = omega  # longitude of the ascending node
         self.i = i  # inclination
         self.w = w  # argument of periapsis
-        self.ts = ts if ts is not None else datetime.datetime.now()
+        self.t0 = t0 if t0 is not None else datetime.datetime(2000, 1, 1).replace(tzinfo=datetime.timezone.utc)
+
+    def __str__(self):
+        return "KeplerElementSet(m0={0.m0}, e={0.e}, a={0.a}, omega={0.omega}, i={0.i}, w={0.w}, t0={0.t0}, n={0.n})".format(self)
+    
+    @property
+    def n(self):
+        return math.sqrt(GE/math.pow(self.a, 3))
 
     @staticmethod
     def from_dict(kes: dict):
@@ -99,13 +106,14 @@ class KeplerElementSet(object):
 
                     # derived attributes #1
                     t = frac_to_time(d["epoch_fractal"])
-                    d["timestamp"] = datetime.datetime.strptime(
+                    ts = datetime.datetime.strptime(
                         "{}-{:03d}T{:02d}:{:02d}:{:09.6f}".format(
                             d["epoch_year"], d["epoch_doy"],
                             t.hour, t.minute, t.second + t.microsecond * 1e-3
                         ),
                         "%y-%jT%H:%M:%S.%f"
-                    )
+                    ).replace(tzinfo=datetime.timezone.utc)
+                    d["timestamp"] = ts
 
                 elif line.startswith("2"):
                     # NORAD Line 2
@@ -113,11 +121,11 @@ class KeplerElementSet(object):
                     tle_groups = tle.groups()
 
                     d["satellite_catalog_number_2"] = tle_groups[0].strip()
-                    d["inclination"] = float(tle_groups[1].strip())
-                    d["right_ascension"] = float(tle_groups[2].strip())
+                    d["inclination"] = math.radians(float(tle_groups[1].strip()))
+                    d["right_ascension"] = math.radians(float(tle_groups[2].strip()))
                     d["eccentricity"] = eval("0.{}".format(tle_groups[3].strip()))
-                    d["argument_of_perigee"] = float(tle_groups[4])
-                    d["mean_anomaly"] = float(tle_groups[5])
+                    d["argument_of_perigee"] = math.radians(float(tle_groups[4]))
+                    d["mean_anomaly"] = math.radians(float(tle_groups[5]))
                     d["mean_motion"] = float(tle_groups[6])
                     d["revolutions"] = int(tle_groups[7].strip())
                     d["checksum_2"] = tle_groups[8].strip()

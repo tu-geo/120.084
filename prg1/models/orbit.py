@@ -20,4 +20,4 @@ class Orbit(object):
 
     def get_elevation_polar_array(self):
         #return self.__elevation_list
-        return np.array([90 - v for v in self.__elevation_list.tolist()])
+        return np.array([90.0 - v for v in self.__elevation_list.tolist()])

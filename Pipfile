@@ -9,6 +9,7 @@ verify_ssl = true
 pytest = "*"
 numpy = "*"
 matplotlib = "*"
+astropy = "*"
 
 [requires]
 python_version = "3.6"

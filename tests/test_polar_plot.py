@@ -9,7 +9,8 @@ from prg1.models.point import GeocentricPoint
 from prg1.models.kepler_element_set import KeplerElementSet
 from prg1.models.nuisance_parameter_set import NuisanceParameterSet
 from prg1.utils.polar_plot import generate_plot
-from prg1.utils.orbit_to_cart import orbit_to_cart
+from prg1.utils.orbit_to_cart import orbit_to_cart, orbit_to_cart2
+from prg1.utils.time_conversion import calculate_theta
 from prg1.utils.angle_conversion import rad_to_deg
 from prg1.utils.point_conversion import convert_ellipsoidal_to_cartesian, \
     convert_cartesian_to_ellipsoidal, get_azimuth_and_elevation, xyz2ell
@@ -25,7 +26,7 @@ class PolarPlotTestCase(unittest.TestCase):
         self.station_geocentric = GeocentricPoint(x=1130745.549, y=-4831368.033, z=3994077.168)
         # Day of observation
         self.t_start = datetime.datetime(year=2020, month=3, day=20, hour=0, minute=0, second=0).replace(tzinfo=datetime.timezone.utc)
-
+        self.sat_filter = ["GALILEO"]
 
         elevation = []
         azimuth1 = []
@@ -42,31 +43,42 @@ class PolarPlotTestCase(unittest.TestCase):
             Orbit("S1", azimuth1, elevation),
             Orbit("S2", azimuth2, elevation),
         ]
+
+    def test_jason(self):
+        return True
+        this_dir = os.path.dirname(os.path.realpath(__file__))
+        test_file = os.path.join(this_dir, "__jason.csv")
+        azimuth = []
+        elevation = []
+        orbit_list = []
+
+        with open(test_file, newline='') as csvfile:
+            reader = csv.DictReader(csvfile)
+            for row in reader:
+                azimuth.append(float(row["azimuth"]))
+                elevation.append(float(row["elevation"]))
+            np_a = np.array(azimuth)
+            np_e = np.array(elevation)
+            np_a[np_e < 10] = np.nan
+            np_e[np_e < 10] = np.nan
+            orbit_list.append(
+                Orbit("Jason", np_a, np_e)
+            )
+        generate_plot(orbit_list=orbit_list, show_plot=True)
+        self.assertTrue(False)
         
     def test_plot_creation(self):
         return
         generate_plot(orbit_list=self.orbit_list, show_plot=False)
 
-    def __do_work(self, p0g, t_start, tle_str, sat_filter=[], export_file=""):
+    def __do_work(self, p0c, t_start, tle_str, sat_filter=[], export_file=""):
         orbit_list = []
         tle = KeplerElementSet.read_tle(tle_str)
         row_list = []
         elevation = []
         azimuth = []
         fieldnames = ["Timestamp", "SatelliteName", "SatelliteNoradId", "ECEF_X", "ECEF_Y", "ECEF_Z", "Longitude", "Latitude", "height", "azimuth", "elevation"]
-        nuisance_parameter_set = None
-        # nuisance_parameter_set = NuisanceParameterSet(
-        #     delta_n=0.457447625958e-8,
-        #     omega_dot=-0.799283293357e-8, i_dot=-0.560380484954e-9,
-        #     c_us=0.976212322712e-5, c_uc=-0.109896063805e-5,
-        #     c_is=0.428408384323e-7, c_ic=0.763684511185e-7,
-        #     c_rs=-0.207812500000e2, c_rc=0.188562500000e3
-        # )
-
-        if sat_filter:
-            do_work = False
-        else:
-            do_work = True
+        do_work = False if sat_filter else True
 
         for sat in sat_filter:
             do_work = do_work or sat in tle["satellite_name"]
@@ -75,10 +87,10 @@ class PolarPlotTestCase(unittest.TestCase):
             return orbit_list
         
         kepler_element_set = KeplerElementSet.from_dict(tle)
-        t0 = tle["timestamp"].replace(tzinfo=datetime.timezone.utc)
+        #print(kepler_element_set)
 
         for i in range(self.duration):
-            ti = t_start + datetime.timedelta(minutes=i + 1)
+            ti = t_start + datetime.timedelta(minutes=i)
             days = 0 if ti.weekday() == 6 else ti.weekday() + 1
 
             # Get the start of corresponding GPS-Week
@@ -86,22 +98,21 @@ class PolarPlotTestCase(unittest.TestCase):
                 hours=ti.hour, minutes=ti.minute, seconds=ti.second,
                 microseconds=ti.microsecond
             )
+            # last_sunday = datetime.datetime(2000, 1, 1).replace(tzinfo=datetime.timezone.utc)
             t0e = (ti - last_sunday).total_seconds()
-            #t0e = 0.0
+            p0g = convert_cartesian_to_ellipsoidal(src_point=p0c)
 
             # Orbit to cartesian
-            pic = orbit_to_cart(ke=kepler_element_set, nps=nuisance_parameter_set,
-                t0=t0.timestamp(), ti=ti.timestamp(), t0e=t0e)
+            #pic = orbit_to_cart2(ke=kepler_element_set, ti=ti)
+            pic = orbit_to_cart(ke=kepler_element_set, ti=ti, nps=None, t0e=t0e)
 
             # Cartesian to ellipsoidal
             pig = convert_cartesian_to_ellipsoidal(axis_major=kepler_element_set.a,
                 flattening=tle["flattening"],
                 src_point=pic
             )
+            
             a, e = get_azimuth_and_elevation(p0g, pig)
-            # if e > 180:
-            #     print("HÄH")
-            #     e = 0
             if e > 90:
                 #e = 180 - e
                 e = 90 - (e % 90)
@@ -152,11 +163,9 @@ class PolarPlotTestCase(unittest.TestCase):
         # generate azimuths and elevations
         this_dir = os.path.dirname(os.path.realpath(__file__))
         test_file = os.path.join(this_dir, "20200320-active_satellites.txt")
-        sat_filter = ["GALILEO"]
         # sat_filter = []
         orbit_list = []
         p0c = self.station_geocentric
-        p0g = convert_cartesian_to_ellipsoidal(src_point=p0c)
         j = 0
 
         # Let's get all the satellite's orbits
@@ -170,7 +179,7 @@ class PolarPlotTestCase(unittest.TestCase):
                     tle_str = "".join(tle_set)
                     sat_name = tle_set[0].replace("\n", "").strip()
                     tle_set = []
-                    result = self.__do_work(p0g, self.t_start, tle_str, sat_filter, os.path.join(this_dir, "results", "20200320-result-XXXX.csv"))
+                    result = self.__do_work(p0c, self.t_start, tle_str, self.sat_filter, os.path.join(this_dir, "results", "20200320-result-XXXX.csv"))
                     if result:
                         print("Processing -- {}".format(sat_name))
                         orbit_list += result

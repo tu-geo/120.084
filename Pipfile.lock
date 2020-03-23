@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "3af490d8fe53624617184f82ef70b17fff78fca88d59663e53ef78e6d6b9e18f"
+            "sha256": "04b449c7e4db73537f226b143f97dfb2dd9e576d3177583343a5798f58b455e9"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -16,6 +16,28 @@
         ]
     },
     "default": {
+        "astropy": {
+            "hashes": [
+                "sha256:03de1a963b7f0efba367db88529946c6fab54caca3eb9448337f6b6c8e139c48",
+                "sha256:09ae780bc7e330af2394b04a43ee6fecb6c12887c62c067ee3d411dd62cc0c34",
+                "sha256:0c2126668ae586cbbc8114e205f11cabf77c17cf77c9f5a98e79d9233cf809d5",
+                "sha256:12feff9d55bb2e9aaf9b5724acac146244b8defc448e59d734a61a8bedb10bb8",
+                "sha256:24595c4d45d088c74ebd5c57837a847c3dbe3a70b2940b045f95fd0382dc8237",
+                "sha256:2b6ed8d7d4043587af62a55783f58d0d62e0e8217749c4cff721e727635dfa96",
+                "sha256:2e427628c784fd76712cf717591ff94beb9c0d31e54f29b293d5a8111cd43c97",
+                "sha256:395523140c8f117d6625339677b7af8c1ff5b37d78f60f0a8a94c13d8f3a6e69",
+                "sha256:404200e0baa84de09ac563ad9ccab3817e9b9669d0025cee74a8752f4bc2771b",
+                "sha256:472d2f8b89dd486fa4912c6885191b1774b49ed566070cdf05920487d366a181",
+                "sha256:5d0615fdc11ab3446db7e1e8acb8400cbf5e7f5da6208a317de81f96f8a31402",
+                "sha256:a973eaeb4667a391bc6f52ddc18ac4ea7d93af3a8cf31a9f5987abcde1f4241b",
+                "sha256:b48ff0af8b784db295aae9d21b73d898d0f2f888868d8f68f0ecb08a7438a3ec",
+                "sha256:ba866b243c47f1a34efe43b8e6d0e8d2630353399530e1267135d00068526283",
+                "sha256:c7ab6aa080085cd0f5ed8b2734240234dd72a712c706f9de7e248b899e2ed76d",
+                "sha256:e0b3e1bcb6848c9587734c8c1abcc3b7d5ae6239081ee7e49440b2f83f2de9c8"
+            ],
+            "index": "pypi",
+            "version": "==4.0"
+        },
         "attrs": {
             "hashes": [
                 "sha256:08a96c641c3a74e44eb59afb61a24f2cb9f4d7188748e76ba4bb5edfa3cb7d1c",

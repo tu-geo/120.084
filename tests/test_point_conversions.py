@@ -5,7 +5,7 @@ import logging
 from prg1.models.point import GeocentricPoint, GeographicPoint
 from prg1.utils.point_conversion import convert_ellipsoidal_to_cartesian, \
     convert_cartesian_to_ellipsoidal, ELLIPSOID_AXIS_MAJOR, ELLIPSOID_FLATTENING, \
-    get_azimuth_and_elevation
+    get_azimuth_and_elevation, get_a_e2
 
 
 logger = logging.getLogger(__name__)
@@ -47,3 +47,4 @@ class PointConversionTestCase(unittest.TestCase):
         a, e = get_azimuth_and_elevation(station, satellite)
         #print(a, e)
         #self.assertTrue(False)
+
