@@ -153,8 +153,6 @@ class PolarPlotTestCase(unittest.TestCase):
                     d = {}
                     for key, value in zip(fieldnames, row):
                         d[key] = value
-                    #print(row)
-                    #print(d)
                     writer.writerow(d)
             
         return orbit_list
