@@ -58,6 +58,7 @@ def convert_cartesian_to_ellipsoidal(src_point, axis_major=ELLIPSOID_AXIS_MAJOR,
     delta_e = eps + 1
     i = 0
     max_iterations = 20
+
     # Iterate until delta_e fits epsilon or max iterations
     while delta_e >= eps and i < max_iterations:
         i += 1
@@ -66,6 +67,7 @@ def convert_cartesian_to_ellipsoidal(src_point, axis_major=ELLIPSOID_AXIS_MAJOR,
         h_i = p / np.cos(phi_old) - n_i
         phi_new = np.arctan2(z, (1 - e2 * n_i / (n_i + h_i)) * p)
         delta_e = np.absolute(phi_old - phi_new)
+
     logger.debug("Needed {} iterations".format(i))
     phi_rad = phi_new
     ele = h_i

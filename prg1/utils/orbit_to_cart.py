@@ -1,9 +1,77 @@
 import math
+import datetime
 
 from prg1.models.point import GeocentricPoint
 from prg1.models.nuisance_parameter_set import NuisanceParameterSet
+from prg1.models.kepler_element_set import KeplerElementSet
 from prg1.utils.constants import GE, OMEGA_E_DOT
 from prg1.utils.angle_conversion import deg_to_rad as d2r, rad_to_deg as r2d
+from prg1.utils.point_conversion import convert_cartesian_to_ellipsoidal
+
+
+# finding true anomaly "E" via recursion
+def recursive_anomaly(mean_anomaly, intermediate_anomaly, eccentricity, recursion, eps=1e-10, max_recursion_depth=20):
+    true_anomaly = intermediate_anomaly - (intermediate_anomaly - eccentricity * math.sin(intermediate_anomaly) - mean_anomaly) / \
+        (1 - eccentricity * math.cos(intermediate_anomaly))
+    # print(true_anomaly)
+    if recursion >= max_recursion_depth:
+        # print("Reached recursion depth")
+        return true_anomaly
+        
+    if math.fabs(true_anomaly - intermediate_anomaly) < eps:
+        # print("Reached cumpatitional epsilon after {} recursions".format(recursion))
+        return true_anomaly
+    return recursive_anomaly(mean_anomaly, true_anomaly, eccentricity, recursion+1, eps, max_recursion_depth)
+
+
+def orbit_to_geograpic_springer(ke: KeplerElementSet, ti: datetime.datetime, t0e: datetime.datetime, apply_rotation=True):
+    """
+    Referring to 3.1.2 Keplerian Orbit Model Convert Kepler Orbit to ITRF Coordinates
+
+    :param ke: Kepler Elements
+    :type ke: KeplerElementSet
+    :param ti: Time of observation
+    :type ti: datetime.datetime
+    :param t0e: reference date, default: 1st January 2000
+    :type t0e: datetime.datetime
+    """
+
+    # mean anomaly "M"
+    mean_anomaly = ke.n * (ti - ke.t0).total_seconds()
+    
+    # eccentric anomaly "E"
+    eccentric_anomaly = recursive_anomaly(mean_anomaly, mean_anomaly, ke.e, 0)
+
+    # true anomaly "v"
+    true_anomaly = 2 * math.atan(math.sqrt((1.0 + ke.e) / (1.0 - ke.e)) * math.tan(eccentric_anomaly / 2.0))
+    
+    # radius "r"
+    radius = ke.a * (1.0 - ke.e * math.cos(eccentric_anomaly))
+
+    # point in icrf
+    u = ke.w + true_anomaly
+
+    # apply earth_rotation
+    omega_rotate = ke.omega
+
+    x_orbit = radius * math.cos(true_anomaly)
+    y_orbit = radius * math.sin(true_anomaly)
+
+    x_icrf = x_orbit * math.cos(omega_rotate) - y_orbit * math.cos(ke.i) * math.sin(omega_rotate)
+    y_icrf = x_orbit * math.sin(omega_rotate) + y_orbit * math.cos(ke.i) * math.cos(omega_rotate)
+    z_icrf = y_orbit * math.sin(ke.i)
+
+    p_icrf = GeocentricPoint(x_icrf, y_icrf, z_icrf)
+    p_ellps = convert_cartesian_to_ellipsoidal(p_icrf)
+
+    # apply rotation
+    if apply_rotation:
+        delta_lambda = OMEGA_E_DOT * (ke.t0 - t0e).total_seconds()
+        delta_lambda = delta_lambda % (2 * math.pi)
+        p_ellps.lon += delta_lambda
+
+    return p_ellps
+
 
 
 # def orbit_position(ke, ti, eps=1e-10):
@@ -65,7 +133,7 @@ from prg1.utils.angle_conversion import deg_to_rad as d2r, rad_to_deg as r2d
 #     return pq_to_xyz(ke, p, q)
 
 
-def orbit_to_cart(ke, nps, ti, t0e=0.0, eps=1e-10):
+def orbit_to_cart(ke: KeplerElementSet, nps, ti: datetime.datetime, t0e: datetime.datetime, eps=1e-10):
     """
         Calculate cartesian coordinates for a setllite at a specific time
         :param ke: Kepler elements
@@ -89,9 +157,9 @@ def orbit_to_cart(ke, nps, ti, t0e=0.0, eps=1e-10):
     # Zeitdifferenz
     delta_t = (ti - ke.t0).total_seconds()
     # korrektur der mittleren Bewegung
-    n_k = math.sqrt(GE / math.pow(ke.a, 3))
+    n_k = ke.n  # math.sqrt(GE / math.pow(ke.a, 3))
     n_k += nps.delta_n
-    # Berechnung der mittleren Anomalie
+    # Berechnung der mittleren Anomalie - mean anomaly 'M'
     m_k = m0 + n_k * delta_t
     # Berechnung der exzentrischen Anomalie
     e_k_old = m_k
@@ -122,13 +190,13 @@ def orbit_to_cart(ke, nps, ti, t0e=0.0, eps=1e-10):
     i_k = i
     i_k += nps.i_dot * delta_t + delta_i
     # Korrigierte Rektaszension
-    omega_k = omega - OMEGA_E_DOT * t0e
+    omega_k = omega - OMEGA_E_DOT * (ke.t0 - t0e).total_seconds()
     omega_k -= (OMEGA_E_DOT - nps.omega_dot) * delta_t
 
     # Position in der Bahnebene
     x_ks = r_k * math.cos(u_k)
     y_ks = r_k * math.sin(u_k)
-    
+
     # Position im Raum
     x_k = x_ks * math.cos(omega_k) - y_ks * math.sin(omega_k) * math.cos(i_k)
     y_k = x_ks * math.sin(omega_k) + y_ks * math.cos(omega_k) * math.cos(i_k)

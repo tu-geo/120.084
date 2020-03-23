@@ -128,3 +128,6 @@ dmypy.json
 # Pyre type checker
 .pyre/
 .vscode
+Leap_Second.dat
+de421.bsp
+deltat.*

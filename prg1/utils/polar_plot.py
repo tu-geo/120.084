@@ -17,7 +17,7 @@ def generate_plot(orbit_list, show_plot=True):
     ax.set_yticklabels(map(str, range(rmax, 0, -ticksize)))
 
     for orbit in orbit_list:
-        ax.scatter(orbit.get_azimuth_radian_array(), orbit.get_elevation_polar_array(), s=1, label=orbit.satellite_id)
+        ax.plot(orbit.get_azimuth_radian_array(), orbit.get_elevation_polar_array(), label=orbit.satellite_id)
 
     # Put Legend to correct position
     chartBox = ax.get_position()

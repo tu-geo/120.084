@@ -42,20 +42,77 @@ class KeplerElementSet(object):
     }
 
     def __init__(self, m0, e, a, omega, i, w, t0=None, **kwars):
-        self.m0 = m0  # anomaly
+        """
+        Create KeplerElementSet
+
+        :param m0: mean anomaly [rad]
+        :type m0: float
+        :param e: eccentricity
+        :type e: float
+        :param a: major axis
+        :type a: float
+        :param omega: longitude of the ascending node [rad]
+        :type omega: float
+        :param i: inclination [rad]
+        :type i: float
+        :param w: argument of periapsis [rad]
+        :type w: float
+        :param t0: time of periapsis
+        :type t0: datetime.datetime
+        """
+        t0 = t0 if t0 is not None else datetime.datetime(2000, 1, 1).replace(tzinfo=datetime.timezone.utc)
+        self.m0 = m0  # mean anomaly
         self.e = e  # eccentricity
         self.a = a  # major axis
         self.omega = omega  # longitude of the ascending node
         self.i = i  # inclination
         self.w = w  # argument of periapsis
-        self.t0 = t0 if t0 is not None else datetime.datetime(2000, 1, 1).replace(tzinfo=datetime.timezone.utc)
+        self.t0 = t0  # time of periapsis
 
     def __str__(self):
         return "KeplerElementSet(m0={0.m0}, e={0.e}, a={0.a}, omega={0.omega}, i={0.i}, w={0.w}, t0={0.t0}, n={0.n})".format(self)
     
     @property
     def n(self):
-        return math.sqrt(GE/math.pow(self.a, 3))
+        """
+        Get mean motion
+
+        :return: mean motion of kepler elements [1/sec]
+        :rtype: float
+        """
+        return math.sqrt(GE / math.pow(self.a, 3))
+
+    @property
+    def b(self):
+        """
+        Get minor axis
+
+        :return: minor axis b of kepler elmenets [m]
+        :rtype: float
+        """
+        return math.sqrt((1 - math.pow(self.e, 2)) * math.pow(self.a, 2))
+
+    @property
+    def f(self):
+        """
+        Get flattening
+
+        :return: flattening f of kepler elmenets
+        :rtype: float
+        """
+        return 1 - self.b / self.a
+                
+    def get_mean_anomaly(self, ti: datetime.datetime) -> float:
+        """
+        Get mean anomaly "M" for given timestamp ti
+
+        :param ti: Timestamp to compute anomaly
+        :type ti: datetime.datetime
+        :return: Mean anomaly "M" for given timestamp [rad]
+        :rtype: float
+        """
+        dt = (ti - self.t0).total_seconds()
+        return self.n * dt
 
     @staticmethod
     def from_dict(kes: dict):

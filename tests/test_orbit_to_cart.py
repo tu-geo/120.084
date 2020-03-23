@@ -45,7 +45,7 @@ class OrbitalTestCase(unittest.TestCase):
     def __do_work(self, pi, ti):
         logger.info("Calculate new Point")
         # print(self.kepler_elements)
-        pn = orbit_to_cart(ke=self.kepler_elements, nps=self.nuisance_parameter_set, ti=ti, t0e=0.403200000000e6)
+        pn = orbit_to_cart(ke=self.kepler_elements, nps=self.nuisance_parameter_set, ti=ti, t0e=self.kepler_elements.t0 - datetime.timedelta(seconds=0.403200000000e6))
         logger.info("Pi: {}".format(pi))
         logger.info("Pn: {}".format(pn))
         diff = (pn - pi).get_norm()
