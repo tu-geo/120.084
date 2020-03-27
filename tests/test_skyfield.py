@@ -11,6 +11,7 @@ from prg1.models.point import GeocentricPoint
 from prg1.utils.point_conversion import convert_ellipsoidal_to_cartesian, \
     convert_cartesian_to_ellipsoidal
 from prg1.utils.polar_plot import generate_plot
+from prg1.utils.plot_time import generate_plot as plot_time
 
 
 logger = logging.getLogger(__name__)
@@ -33,7 +34,7 @@ class SkyFieldTestCase(unittest.TestCase):
         self.test_file = os.path.join(self.this_dir, "20200320-active_satellites.txt")
         self.elevation_filter = 10.0
         self.duration = 1440
-        self.satellite_filter_list = ["GALILEO", ]
+        self.satellite_filter_list = ["(GALILEO", ]
         self.create_plot = True
 
     def __do_work(self, satellite, station):
@@ -76,12 +77,59 @@ class SkyFieldTestCase(unittest.TestCase):
 
         with open(os.path.join(self.this_dir, "__skyfield_rise_and_set.log"), "w") as skyfield_file:
 
+            window_list_all = []
+
             for satellite_name in satellites:
+                do_process = len(self.satellite_filter_list) == 0
+                for f in self.satellite_filter_list:
+                    do_process = do_process or f in str(satellite_name)
+
+                if not do_process:
+                    continue
+
                 satellite = satellites[satellite_name]
+
+                window_list_sat = []
+
                 t, events = satellite.find_events(station, t0, t1, altitude_degrees=self.elevation_filter)
+                window = []
+
                 for ti, event in zip(t, events):
                     name = ('rise above 10°', 'culminate', 'set below 10°')[event]
                     skyfield_file.write("{},{},{}\n".format(ti.utc_iso(), satellite.name, name))
+                    t_formatted = datetime.datetime.strptime(
+                        ti.utc_strftime("%Y-%m-%dT%H:%M"),
+                        "%Y-%m-%dT%H:%M"                      
+                    )
+
+                    if event == 0:  # Rise
+                        window = [t_formatted,]
+                    elif event == 2:  # Set, only if rised too
+                        if len(window) == 0:
+                            window = [t_formatted - datetime.timedelta(hours=t_formatted.hour, minutes=t_formatted.minute)]
+                        window.append(t_formatted)
+
+                    # if len(window) == 1:
+                    #     t_formatted = datetime.datetime.strptime(
+                    #         t1.utc_strftime("%Y-%m-%dT%H:%M"),
+                    #         "%Y-%m-%dT%H:%M"                      
+                    #     )
+                    #     window.append(t_formatted)
+
+                    if len(window) == 2:
+                        window_list_sat.append(window)
+
+                if window_list_sat:
+                    window_list_all.append({
+                        "satellite": satellite_name,
+                        "windows": window_list_sat
+                    })
+            print(window_list_all)
+
+        # plotting windows:
+        # datastructure: [{"satellite": "LCS 1", "windows": [[t1_rise, t1_set], [t2_rise, t2_set], ...]}, {...}, ...]
+
+        plot_time(window_list_all)
 
         self.assertTrue(False)
 
@@ -100,21 +148,14 @@ class SkyFieldTestCase(unittest.TestCase):
 
         for satellite_name in satellites:
 
-            # print("Satellite", satellite_name, type(satellite_name))
-
             if len(orbit_list) >= self.max_satellites:
                 break
 
-            found_sat = False
-            if not self.satellite_filter_list:
-                found_sat = True
+            do_process = len(self.satellite_filter_list) == 0
+            for f in self.satellite_filter_list:
+                do_process = do_process or f in str(satellite_name)
 
-            for satellite_filter in self.satellite_filter_list:
-                # print("Test filter {} in {}".format(satellite_filter, satellite_name))
-                if satellite_filter in str(satellite_name):
-                    found_sat = True
-
-            if not found_sat:
+            if not do_process:
                 continue
 
             print("Processing {}".format(satellite_name))
