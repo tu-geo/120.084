@@ -1,0 +1,616 @@
+      ILRS Site and System Information Form
+      International Laser Ranging Service
+
+ 0.   Form
+
+      Prepared by (Full Name)    : Julie Horvath
+      Preparer E-mail            : julie.horvath@honeywell.com
+      Date Prepared              : 2014-10-19
+      Report Type                : UPDATE
+      Format Version             : 1.0
+
+
+ 1.   Identification of the Ranging System Reference Point (SRP)
+
+      Site Name                  : NGSLR
+      IERS DOMES Number          : 40451M114
+      CDP Pad ID                 : 7125
+      Subnetwork                 : NASA
+      Description                : MONUMENT
+      Monument Description       : STANDARD NASA DISK EPOXIED INTO CONCRETE
+      Monument Inscription       : 7125                                    
+      Mark Description           : DIMPLE WITH CONCENTRIC CIRCLE           
+      Date Installed             : 1985                                    
+      Date Removed               : (yyyy-mm-dd)
+      Geologic Characteristic    : CRETACEOUS SAND AND GRAVEL
+      Additional Information     : (multiple lines)
+
+
+ 2.   Site Location Information
+
+      City or Town               : Greenbelt
+      State or Province          : Maryland
+      Country                    : USA
+      Tectonic Plate             : NORTH AMERICAN
+      Approximate Position
+        X coordinate          [m]:  1130745.549
+        Y coordinate          [m]: -4831368.033
+        Z coordinate          [m]:  3994077.168
+        Latitude            [deg]:  39.0202694 N
+        Longitude           [deg]: 283.1723048 E
+        Elevation             [m]: 18.496
+      Additional Information     : (multiple lines)
+
+
+ 3.   General System Information
+
+ 3.01 System Name                : NGSLR
+      4-Character Code           : GO1L
+      CDP System Number          : 93
+      CDP Occupation Number      : 1
+      Eccentricity to SRP (if Not Identical With SRP)
+        North                 [m]: -0.081 m +- 0.0005 m                      
+        East                  [m]: -2.814 m +- 0.0005 m                      
+        Up                    [m]: +3.695 m +- 0.0005 m                      
+        Date Measured            : 2012-10-01
+      Date Installed             : 2002-10-15
+      Date Removed               : (yyyy-mm-dd)
+      Additional Information     : (multiple lines)
+             
+             
+ 4.   Telescope Information
+
+ 4.01 Receiving Telescope Type   : CASSEGRAIN
+        Aperture              [m]: 0.40
+        Mount                    : AZ-EL
+      Xmitting Telescope Type    : CASSEGRAIN
+        Aperture              [m]: 0.40
+      Tracking Camera Type       : CCD
+        Model                    : CCC1390H Day/Night, WDR, High Resolution
+        Manufacturer             : Pelco
+        Field of View       [deg]: 17 degrees
+        Minimum Magnitude   [mag]: 3.8
+      Transmit/Receive Path      : COMMON COUDE
+      Transmit/Receive Switch    : PASSIVE POLARIZING
+      Max Slew Rate Az    [deg/s]: 20
+      Max Slew Rate El    [deg/s]: 20
+      Max Used Tracking Rate Az  : 5 deg/sec
+      Max Used Tracking Rate El  : 5 deg/sec
+      Telescope Shelter          : DOME
+      Daylight Filter Type       : SPECTRAL FILTER
+      Dayl. Filt. Bandwidth  [nm]: 0.2
+      Adjustable Attenuation     : TRANSMIT & RECEIVE 0-3 OD T, 0-4 OD R
+      Transmit Efficiency        : 0.5
+      Receive Efficiency         : 0.5
+      Date Installed             : 2002-10-15
+      Date Removed               : (yyyy-mm-dd)
+      Additional Information     : (multiple lines)
+
+
+ 5.   Laser System Information
+
+ 5.01 Laser Type                 : ND:YAG
+      Number of Amplifiers       : 1
+      Primary Wavelength     [nm]: 1064
+      Primary Maximum Energy [mJ]: 5.6
+      Secondary Wavelength   [nm]: 532
+      Secondary Max. Energy  [mJ]: 2.8
+      Xmit Energy Adjustable     : YES
+      Pulse Width (FWHM)     [ps]: 50
+      Max. Repetition Rate   [Hz]: 2 khz
+      Fullw. Beam Divergence  ["]: 4 in to 12 in
+      Final Beam Diameter     [m]: 0.357
+      Eyesafe                    : NO
+      Eyesafe Standard           : ANSI Z136.1, ANSI Z136.6                 
+      Date Installed             : 2012-08-27
+      Date Removed               : (yyyy-mm-dd)
+      Additional Information     : (multiple lines)
+
+ 5.02 Laser Type                 : ND:YAG
+      Number of Amplifiers       : 1
+      Primary Wavelength     [nm]: 1064
+      Primary Maximum Energy [mJ]: 50
+      Secondary Wavelength   [nm]: 532
+      Secondary Max. Energy  [mJ]: 40
+      Xmit Energy Adjustable     : yes
+      Pulse Width (FWHM)     [ns]: <8.0
+      Max. Repetition Rate   [Hz]: 28
+      Fullw. Beam Divergence [mrad]: <1.6
+      Final Beam Diameter    [mm]: >6.5
+      Eyesafe                    : NO
+      Eyesafe Standard           : ANSI Z136.1, ANSI Z136.6                 
+      Date Installed             : 2008
+      Date Removed               : 2014-09-30
+      Additional Information     : This laser was used for LRO only
+                                 : The LR-LRO project ended on 2014-09-30
+                                 : The beam diameter # is directly out of the laser
+
+
+ 6.   Receiver System
+
+ 6.01.01 Primary Chain
+         Wavelength          [nm]: 532
+         Detector Type           : MCP
+           Manufacturer          : Hamamatsu
+           Model                 : R5916U-64
+           Quantum Efficiency [%]: 43
+           Nominal Gain          : 2.0E+5
+           Rise Time         [ps]: 178
+           Jitter (Single PE)[ps]: 124
+           Field of View      ["]: 10" to 40"
+           Date Installed        : 2012-02-08
+           Date Removed          : (yyyy-mm-dd)
+         Signal Processing       : CFD
+           Manufacturer          : Tennelec
+           Model                 : TC454
+           Date Installed        : 2010-03-01
+           Date Removed          : (yyyy-mm-dd)
+           Amplitude Measurement : NO
+           Return-rate Controlled: NOT YET
+           Mode of Operation     : SINGLE to MULTI-PHOTON
+         Time of Flight Observ.  : EVENT TIMER
+           Manufacturer          : HTSI
+           Model                 : 002                                      
+           Resolution        [ps]: <2 ps                                    
+           Precision         [ps]: 30
+           Date Installed        : 2002-02-01
+           Date Removed          : (yyyy-mm-dd)
+         Additional Information  : (multiple lines)
+
+ 6.02.01 Secondary Chain
+         Wavelength          [nm]: N/A
+         Detector Type           : (PM/MCP/SPAD/etc))
+           Manufacturer          :
+           Model                 :
+           Quantum Efficiency [%]:
+           Nominal Gain          :
+           Rise Time         [ps]:
+           Jitter (Single PE)[ps]:
+           Field of View      ["]: (minimum-maximum or fixed value)
+           Date Installed        : (yyyy-mm-dd)
+           Date Removed          : (yyyy-mm-dd)
+         Signal Processing       : (CFD/PEAK/etc)
+           Manufacturer          :
+           Model                 :
+           Date Installed        : (yyyy-mm-dd)
+           Date Removed          : (yyyy-mm-dd)
+           Amplitude Measurement : (YES/NO)
+           Return-rate Controlled: (YES/NO)
+           Mode of Operation     : (MULTI/SINGLE/FEW PHOTON/DON'T KNOW)
+         Time of Flight Observ.  : (INTERVAL/EVENT/STREAK CAMERA/etc)
+           Manufacturer          :
+           Model                 :
+           Resolution        [ps]:
+           Precision         [ps]:
+           Date Installed        : (yyyy-mm-dd)
+           Date Removed          : (yyyy-mm-dd)
+         Additional Information  : (multiple lines)
+
+
+ 7.   Tracking Capabilities
+
+ 7.01 Satellites
+        Very Low Alt (<400 km)   : YES
+        Low Altitude (400-2000)  : YES
+        Lageos                   : YES
+        GLONASS                  : YES
+        Etalon                   : YES
+        GPS                      : NOT YET
+        Moon                     : YES (LRO, not LLR)
+      Avge Pass Switch Time   [s]: N/A
+      Average values for Lageos
+        Single Shot RMS      [mm]: 45
+        # of Obs per NP          : 100-5000
+        Use of Semi-trains       : NO
+        # of Semi-train Tracks   : N/A
+      Range Gate Width       [ns]: 600 ns
+      Beam Pointing Accuracy  ["]: 1
+      Angle Encoder Resolution["]: 0.3
+      Min. Tracking Elev.   [deg]: 20
+      Operation
+        Months per Year          : N/A (not yet operational)
+        Days per Week            : 
+        Hours per Day            :
+        Staff per Shift          : 1
+        System Shared With       : 
+        Time Allocated to SLR [%]: 
+        Remotely Controllable    : NO
+      Date First Applicable      : 2010-12-06 17:00 UT
+      Date Last Applicable       : (yyyy-mm-dd hh:mm UT)
+      Additional Information     : (multiple lines)
+
+
+ 8.   Calibration
+
+ 8.01 Calibration Type           : PRE+POST
+      Target Location            : EXTERNAL
+      Target Type                : CORNER CUBE
+      Target Structure           : CONCRETE PIER
+      Target Distance         [m]: 146.283
+        Date Measured            : 2012-10-01
+        Accuracy (mm)        [mm]: +/- 1.0 mm                                   
+        Verification             : first order survey and ranging to multiple ground targets
+      Return-rate Controlled     : YES
+      Mode of Operation          : SINGLE PHOTON
+      Average Cal Interval  [min]: 5
+      Single Shot RMS        [mm]: 30
+      Edit Criterion 1st Chain   : ITERATIVE 3.0 SIGMA
+      Edit Criterion 2nd Chain   : N/A
+      Application of Cal Data    : AVERAGE
+      Date Installed             : 2002-10                                      
+      Date Removed               : (yyyy-mm-dd)
+      Additional Information     : (multiple lines)
+
+
+9.   Time and Frequency Standards
+
+
+ 9.01.01 Frequency Standard Type : GPS Steered Clock with Rubidium Oscillator
+	 Model			 : XL-DC
+         Manufacturer            : TrueTime (now Microsemi)
+         Short Term Stab.  [e-12]: 0.1 Sec=n/a, 1.0 Sec=40, 10.0 Sec=n/a, 100.0 Sec=n/a, 1000.0 Sec=4
+         Long Term Stab.   [e-12]: 1.0 per day (while XL-DC is locked to GPS satellites)                 
+         Time Reference          : USNO via GPS
+         Synchronization         : GPS
+         Epoch Accuracy      [ns]: +/- 150 
+         Date Installed          : 2002-10-15
+         Date Removed            : n/a
+         Additional Information  : UTC-USNO <40 ns rms (150 ns peak)
+
+ 9.01.02 Frequency Standard Type : Maser
+         Model                   : NR
+         Manufacturer            : Johns Hopkins APL
+         Short Term Stab.  [e-12]: 0.1 Sec=3, 1.0 Sec=0.4, 10.0 Sec=0.05, 100.0 Sec=0.006, 1000.0 Sec=0.002
+         Long Term Stab.   [e-12]: < 0.05 per day                    
+         Time Reference          : USNO
+         Synchronization         : GPS
+         Epoch Accuracy      [ns]: n/a
+         Date Installed          : 2010-10-16
+         Date Removed            : 2012-04-02
+         Additional Information  : 2004-04-29 installed at VLBI
+                                 : The Maser unit was used from 2010 through 2012, however it was 
+                                 : not used continuously due to multiple stability concerns.
+                                 : Dates for timing configuration changes are available upon request.
+                                 
+ 9.01.03 Frequency Standard Type : Cesium
+         Model                   : 4310B
+         Manufacturer            : Symmetricom
+         Short Term Stab.  [e-12]: 0.1 Sec=n/a, 1.0 Sec=12, 10.0 Sec=8.5, 100.0 Sec=2.7, 1000.0 Sec=0.85
+         Long Term Stab.   [e-12]: 0.05 per day                    
+         Time Reference          : USNO
+         Synchronization         : GPS
+         Epoch Accuracy      [ns]: n/a
+         Date Installed          : 2010-04-02
+         Date Removed            : 2012-07-28
+         Additional Information  : Cesium unit failed on 2012-07-28
+                                 : The Cesium unit Symmetricom 4310B was used from 2010 through 2012, 
+                                 : however it was not used continuously due to multiple failures.
+                                 : Dates for timing configuration changes are available upon request.
+
+ 9.01.04 Frequency Standard Type : Active Hydrogen Maser
+         Model                   : MHM 2010 (Part # 75001-106)
+         Manufacturer            : Symmetricom (now Microsemi)
+         Short Term Stab.  [e-12]: 0.1 Sec=n/a, 1.0 Sec=0.15, 10.0 Sec=0.02, 100.0 Sec=0.005, 1000.0 Sec=0.002
+         Long Term Stab.   [e-12]: < 0.0002 per day (with internal auto-tuning)                   
+         Time Reference          : n/a
+         Synchronization         : n/a
+         Epoch Accuracy      [ns]: n/a
+         Date Installed          : 2012-07-28
+         Date Removed            : n/a
+         Additional Information  : Maser is located in the VLBI2010 electronics van
+				 : Maser 10 MHz is sent to NGSLR via fiber optic cable
+         			 : Maser 10 MHz is used as frequency source only
+
+
+10.   Preprocessing Information
+
+10.01 On-site NP Generation      : YES
+      Data Screening             : CPF orbit + polynomial fit
+      Edit Criterion 1st Chain   : ITERATIVE 3.0 SIGMA
+      Edit Criterion 2nd Chain   : N/A
+      Upload interval            : HOURLY
+      Date First Applicable      : 2010-12-10
+      Date Last  Applicable      : (yyyy-mm-dd hh:mm UT)
+      Additional Information     : Noise Filtering prior to Normal point generation
+
+
+11.   Aircraft Detection
+
+11.01 Detection Type             : RADAR
+      Date Installed             : 2007-05-31                                   
+      Date Removed               : (yyyy-mm-dd)
+      Additional Information     : (multiple lines)
+
+
+12.   Meteorological Instrumentation
+
+12.01.01 Pressure Sensor Model   : MET3
+         Manufacturer            : Paroscientific
+         Recording Interval      : Once / minute
+         Accuracy          [mbar]: +/- 0.08
+         Height Diff to SRP   [m]: unknown
+         Date Installed          : 2002-09                                      
+         Calibration Interval    : BIYEARLY                                     
+         Date Removed            : 2013-03-20
+         Additional Information  : Removed for the MET4 Installation
+
+12.01.02 Pressure Sensor Model   : MET4
+         Manufacturer            : Paroscientific
+         Recording Interval      : Once / minute
+         Accuracy          [mbar]: +/- 0.08
+         Height Diff to SRP   [m]: unknown
+         Date Installed          : 2013-03-20                                      
+         Calibration Interval    : BIYEARLY                                     
+         Date Removed            : (yyyy-mm-dd hh:mm UT)
+         Additional Information  : (multiple lines)
+
+12.02.01 Temp Sensor Model       : MET3
+         Manufacturer            : Paroscientific
+         Recording Interval      : Once / minute
+         Accuracy         [deg C]: +/- 0.5
+         Date Installed          : 2002-09                                     
+         Calibration Interval    : BIYEARLY                                     
+         Date Removed            : 2013-03-20
+         Additional Information  : Removed for the MET4 Installation
+
+12.02.02 Temp Sensor Model       : MET4
+         Manufacturer            : Paroscientific
+         Recording Interval      : Once / minute
+         Accuracy         [deg C]: +/- 0.5
+         Date Installed          : 2013-03-20                                     
+         Calibration Interval    : BIYEARLY                                     
+         Date Removed            : (yyyy-mm-dd hh:mm UT)
+         Additional Information  : (multiple lines)
+
+12.03.01 Humidity Sensor Model   : MET3
+         Manufacturer            : Paroscientific
+         Recording Interval      : Once / minute
+         Accuracy       [% rel h]: +/- 2
+         Date Installed          : 2002-09                                      
+         Calibration Interval    : BIYEARLY                                     
+         Date Removed            : 2013-03-20
+         Additional Information  : Removed for the MET4 Installation
+
+12.03.02 Humidity Sensor Model   : MET4
+         Manufacturer            : Paroscientific
+         Recording Interval      : Once / minute
+         Accuracy       [% rel h]: +/- 2
+         Date Installed          : 2013-03-20                                      
+         Calibration Interval    : BIYEARLY                                     
+         Date Removed            : (yyyy-mm-dd hh:mm UT)
+         Additional Information  : (multiple lines)
+
+12.04.01 Wind Sensor Model       : 05103
+         Manufacturer            : Belfort/Young
+         Recording Interval [hms]: Once / minute
+         Accuracy              []: +/- 0.3 m/s and +/- 3 deg
+         Date Installed          : 2004-06-30
+         Calibration Interval    : N/A
+         Date Removed            : (yyyy-mm-dd hh:mm UT)
+         Additional Information  : (multiple lines)
+
+12.05.01 Precipitation Sensor Model : FD12P
+         Manufacturer            : Vaisala
+         Recording Interval [hms]: Once / minute
+         Accuracy              []: N/A
+         Date Installed          : 2004-06-30
+         Calibration Interval    : N/A
+         Date Removed            : (yyyy-mm-dd hh:mm UT)
+         Additional Information  : (multiple lines)
+
+12.06.01 Cloud Cover Model       : None
+         Manufacturer            : Raytheon
+         Recording Interval [hms]: Once / minute
+         Accuracy              []: N/A
+         Date Installed          : 2006-06-30
+         Calibration Interval    : N/A
+         Date Removed            : (yyyy-mm-dd hh:mm UT)
+         Additional Information  : Thermal Camera Model JENOPTIK VarioCAM
+
+12.07.01 Star Camera Model       : SBIG-402ME
+         Manufacturer            : Santa Barbara Instrument Group (SBIG) 
+         Recording Interval [hms]: When requested during starcal
+         Accuracy             ["]: 0.3 arcsec (of centroid)
+         Date Installed          : 2006-09-21
+         Calibration Interval    : N/A
+         Date Removed            : (yyyy-mm-dd hh:mm UT)
+         Additional Information  : Field of view ['] 2 arcmin
+                                 : Minimum magnitude [mag] 6.0
+
+
+13.   Local Ties, Eccentricities, and Collocation Information
+
+13.01 Collocated Permanent Geodetic Systems
+
+      GPS                        : IGS
+        Date Installed           : 1993-04-02
+        Date Removed             : (yyyy-mm-dd)
+        Additional Information   : (multiple lines)
+      GLONASS                    : IGS
+        Date Installed           : 1998-08-28
+        Date Removed             : (yyyy-mm-dd)
+        Additional Information   : (multiple lines)
+      DORIS                      : IDS
+        Date Installed           : 2000-06-29
+        Date Removed             : (yyyy-mm-dd)
+        Additional Information   : (multiple lines)
+      PRARE                      : NO
+        Date Installed           : (yyyy-mm-dd)
+        Date Removed             : (yyyy-mm-dd)
+        Additional Information   : (multiple lines)
+      VLBI                       : IVS
+        Date Installed           : 1993-04-01
+        Date Removed             : (yyyy-mm-dd)
+        Additional Information   : (multiple lines)
+      Gravimeter                 : NO
+        Date Installed           : (yyyy-mm-dd)
+        Date Removed             : (yyyy-mm-dd)
+        Additional Information   : (multiple lines)
+
+13.02.01 Local Ties from the SRP to Other Monuments or Systems on Site
+  
+         Monument Name           :
+         Instrumentation Type    : (GPS/GLONASS/DORIS/PRARE/SLR/VLBI/NONE)
+         Instrumentation Status  : (PERMANENT/MOBILE)
+         DOMES Number            : (XXXXXXXXX)
+         CDP Number              : (XXXX)
+         Differential Components (ITRS)
+           dx                 [m]: (m +- m)
+           dy                 [m]: (m +- m)
+           dz                 [m]: (m +- m)
+           Date Measured         : (yyyy-mm-dd)
+           Determined by         :
+         Date Installed          : (yyyy-mm-dd)
+         Date Removed            : (yyyy-mm-dd)
+         Additional Information  : (multiple lines)
+
+13.03.01 Eccentricities Between Other Monuments on Site 
+ 
+          From: Monument Name     : CDP Station 7125
+                DOMES Number      : 40451M114
+                CDP Number        : 7125
+          To:   Monument Name     : CDP Station 7105
+                DOMES Number      : 40451M105
+                CDP Number        : 
+          Differential Components (ITRS)
+            dx                 [m]: -23.438 +- 0.002
+            dy                 [m]:  18.559 +- 0.002
+            dz                 [m]:  29.096 +- 0.002
+            Date Measured         : 2012-10-01
+            Determined by         : Strategic Services
+          Additional Information  : For more information about
+                                  : contact Jan McGarry
+                                  : jan.f.mcgarry@nasa.gov
+
+13.03.02 Eccentricities Between Other Monuments on Site 
+ 
+          From: Monument Name     : CDP Station 7125
+                DOMES Number      : 40451M114
+                CDP Number        : 7125
+          To:   Monument Name     : CDP Station 7108(93)
+                DOMES Number      : 40451M125
+                CDP Number        : 
+          Differential Components (ITRS)
+            dx                 [m]: - 49.089 +- 0.002
+            dy                 [m]: -134.221 +- 0.002
+            dz                 [m]: -139.898 +- 0.002
+            Date Measured         : 2008-08-01
+            Determined by         : HTSI
+          Additional Information  : For more information about
+                                  : contact Jan McGarry
+                                  : jan.f.mcgarry@nasa.gov
+
+13.03.03 Eccentricities Between Other Monuments on Site 
+ 
+          From: Monument Name     : CDP Station 7125
+                DOMES Number      : 40451M114
+                CDP Number        : 7125
+          To:   Monument Name     : CDP Station GODE
+                DOMES Number      : 40451M123
+                CDP Number        : 
+          Differential Components (ITRS)
+            dx                 [m]: - 28.195 +- 0.002
+            dy                 [m]: -114.467 +- 0.002
+            dz                 [m]: -123.253 +- 0.002
+            Date Measured         : 2008-08-01
+            Determined by         : HTSI
+          Additional Information  : For more information about
+                                  : contact Jan McGarry
+                                  : jan.f.mcgarry@nasa.gov
+
+13.03.04 Eccentricities Between Other Monuments on Site
+ 
+          From: Monument Name     : CDP Station 7125
+                DOMES Number      : 40451M114
+                CDP Number        : 7125
+          To:   Monument Name     : CDP Station NGEOS
+                DOMES Number      : 40451M110
+                CDP Number        : 
+          Differential Components (ITRS)
+            dx                 [m]:  14.430 +- 0.002
+            dy                 [m]: -45.428 +- 0.002
+            dz                 [m]: -59.347 +- 0.002
+            Date Measured         : 2008-08-01
+            Determined by         : HTSI
+          Additional Information  : For more information about
+                                  : contact Jan McGarry
+                                  : jan.f.mcgarry@nasa.gov
+
+13.03.04 Eccentricities Between Other Monuments on Site
+ 
+          From: Monument Name     : CDP Station 7125
+                DOMES Number      : 40451M114
+                CDP Number        : 7125
+          To:   Monument Name     : CDP Station DORIS MK
+                DOMES Number      : 
+                CDP Number        : 
+          Differential Components (ITRS)
+            dx                 [m]:  34.472 +- 0.002
+            dy                 [m]:  23.496 +- 0.002
+            dz                 [m]:  16.299 +- 0.002
+            Date Measured         : 2008-08-01
+            Determined by         : HTSI
+          Additional Information  : For more information about
+                                  : contact Jan McGarry
+                                  : jan.f.mcgarry@nasa.gov
+
+
+14.   Local Events Possibly Affecting Computed Position
+
+14.01 Date                       : (yyyy-mm-dd hh:mm UT)
+      Event                      : (EARTHQUAKE/CONSTRUCTION/etc)
+      Additional Information     : (multiple lines)
+
+
+15.   On-Site, Point of Contact Agency Information
+
+      Agency                     : NASA / GSFC
+      Mailing Address            : Jan McGarry
+                                 : Code 694
+                                 : NASA Goddard Space Flight Center
+                                 : Greenbelt, MD 20771
+      Primary Contact
+        Contact Name             : Jan McGarry
+        Telephone (primary)      : 301-614-5867
+        Telephone (secondary)    : 
+        Fax                      : 
+        E-mail                   : Jan.McGarry@nasa.gov
+      Secondary Contact
+        Contact Name             : Howard Donovan
+        Telephone (primary)      : 301-805-3985
+        Telephone (secondary)    : 
+        Fax                      : 
+        E-mail                   : Howard.Donovan@Honeywell.com
+      Additional Information     : (multiple lines)
+
+
+16.   Responsible Agency (if different from 15.) 
+
+      Agency                     : (multiple lines)
+      Mailing Address            : (multiple lines)
+      Primary Contact
+        Contact Name             :
+        Telephone (primary)      :
+        Telephone (secondary)    :
+        Fax                      :
+        E-mail                   :
+      Secondary Contact
+        Contact Name             :
+        Telephone (primary)      :
+        Telephone (secondary)    :
+        Fax                      :
+        E-mail                   :
+      Additional Information     : (multiple lines)
+
+
+17.   More Information
+
+      URL for More Information   : (N.A.) 
+      Hardcopy on File
+        Site Map                 : (YES/NO)
+        Site Diagram             : (YES/NO)
+        Horizon Mask             : (YES/NO)
+        Monument Description     : (YES/NO)
+        Site Pictures            : (YES/NO)
+      Additional Information     : (multiple lines)
+
