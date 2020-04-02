@@ -9,6 +9,11 @@ class Orbit(object):
         assert len(self.__azimuth_list) == len(self.__elevation_list)
         self.satellite_id = satellite_id
 
+    def add_folding(self, azimuth: float, elevation: float):
+        np.append(self.__azimuth_list, azimuth)
+        np.append(self.__elevation_list, elevation)
+        return self
+
     def get_azimuth_array(self):
         return self.__azimuth_list
 

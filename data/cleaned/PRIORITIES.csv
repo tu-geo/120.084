@@ -1,4 +1,4 @@
-Priority;Mission;ILRS name;COSPAR ID;SIC
+#Priority;Mission;ILRS name;COSPAR ID;SIC
 1;GRACE-FO-1;gracefo1;1804701;0123
 1;GRACE-FO-2;gracefo2;1804702;0124
 2;ICESat-2;icesat2;1807001;6873

@@ -23,7 +23,7 @@ class SkyFieldTestCase(unittest.TestCase):
 
         # Declaration part
         self.duration = int(1440)  # 24*60
-        self.max_satellites = 20
+        self.max_satellites = 1
         self.station_geocentric = GeocentricPoint(x=1130745.549, y=-4831368.033, z=3994077.168)
         self.station_geographic = convert_cartesian_to_ellipsoidal(self.station_geocentric)
         # Day of observation
@@ -34,7 +34,7 @@ class SkyFieldTestCase(unittest.TestCase):
         self.test_file = os.path.join(self.this_dir, "20200320-active_satellites.txt")
         self.elevation_filter = 10.0
         self.duration = 1440
-        self.satellite_filter_list = ["(GALILEO", ]
+        self.satellite_filter_list = [ ]
         self.create_plot = True
 
     def __do_work(self, satellite, station):
@@ -75,14 +75,21 @@ class SkyFieldTestCase(unittest.TestCase):
         t1 = ts.utc(self.t_end.year, self.t_end.month, self.t_end.day)
         satellites = load.tle(self.test_file)
 
+        i = 0
+
         with open(os.path.join(self.this_dir, "__skyfield_rise_and_set.log"), "w") as skyfield_file:
 
             window_list_all = []
 
             for satellite_name in satellites:
+                i += 1
+
                 do_process = len(self.satellite_filter_list) == 0
                 for f in self.satellite_filter_list:
                     do_process = do_process or f in str(satellite_name)
+
+                if i > self.max_satellites:
+                    continue
 
                 if not do_process:
                     continue
@@ -109,27 +116,24 @@ class SkyFieldTestCase(unittest.TestCase):
                             window = [t_formatted - datetime.timedelta(hours=t_formatted.hour, minutes=t_formatted.minute)]
                         window.append(t_formatted)
 
-                    # if len(window) == 1:
-                    #     t_formatted = datetime.datetime.strptime(
-                    #         t1.utc_strftime("%Y-%m-%dT%H:%M"),
-                    #         "%Y-%m-%dT%H:%M"                      
-                    #     )
-                    #     window.append(t_formatted)
-
                     if len(window) == 2:
                         window_list_sat.append(window)
+
+                if len(window) == 1:
+                    t_formatted = datetime.datetime.strptime(
+                        t1.utc_strftime("%Y-%m-%dT%H:%M"),
+                        "%Y-%m-%dT%H:%M"                      
+                    )
+                    window.append(t_formatted)
+                    window_list_sat.append(window)
 
                 if window_list_sat:
                     window_list_all.append({
                         "satellite": satellite_name,
                         "windows": window_list_sat
                     })
-            print(window_list_all)
 
-        # plotting windows:
-        # datastructure: [{"satellite": "LCS 1", "windows": [[t1_rise, t1_set], [t2_rise, t2_set], ...]}, {...}, ...]
-
-        plot_time(window_list_all)
+        # plot_time(window_list_all)
 
         self.assertTrue(False)
 
