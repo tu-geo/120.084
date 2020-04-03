@@ -3,6 +3,7 @@ import os
 import csv
 import math
 import pprint
+import glob
 
 from skyfield.api import Topos, load
 from prg1.models.point import GeographicPoint
@@ -13,6 +14,10 @@ PK_COSPAR = "cospar_id"
 
 MODE_TURNING = "trn"
 MODE_OBSERVING = "obs"
+
+SORT_COL_PRIORITY = "priority"
+SORT_COL_CHORD = "chord"
+SORT_COL_CHOICES = [SORT_COL_PRIORITY, SORT_COL_CHORD]
 
 BIG_VALUE = 9999999
 
@@ -53,12 +58,14 @@ class ObservationScheduler:
         self._t_start = t_start
         self._observed_list = []
         self._duration = duration
-        self.__current_satellite = None
+        self._current_satellite = None
         self.history = []
         self.elevation_cutoff = elevation_cutoff  # degrees
         self._timescale = load.timescale()
+        self.sort_col = kwargs.get("sort_col", None)
         # self.max_satellites = 15
-        self.skip_known = 3
+        self.skip_known = kwargs.get("skip_known", 0)
+        assert isinstance(self.skip_known, int)
 
         assert os.path.exists(self._data_dir)
         assert isinstance(t_start, (datetime.datetime, datetime.date))
@@ -110,13 +117,23 @@ class ObservationScheduler:
 
     def add_observed_satellite(self, cospar_id):
         new_list = []
-        if len(self._observed_list) < self.skip_known:
+
+        if self.skip_known == 0:
+            self._observed_list = new_list
+            return
+
+        if len(new_list) < self.skip_known:
             new_list.append(cospar_id)
+
+        # print(new_list)
+
         for i, old_id in enumerate(self._observed_list):
-            if i + len(new_list) < self.skip_known and cospar_id not in new_list:
-                new_list.append(old_id)
-            else:
+            # print("test", old_id)
+            if len(new_list) >= self.skip_known:
                 break
+            if old_id not in new_list:
+                new_list.append(old_id)
+            
         self._observed_list = new_list
 
     station_location = property(get_station_location, set_station_location)
@@ -179,7 +196,7 @@ class ObservationScheduler:
                 "earth_satellite": satellite
             })
 
-        if sort_col in ["priority", "chord"]:
+        if sort_col in SORT_COL_CHOICES:
             # print("Sort by {}".format(sort_col))
             current_satellites = sorted(current_satellites, key=lambda k: k[sort_col], reverse=False)
         
@@ -235,6 +252,8 @@ class ObservationScheduler:
         return self._observation_time >= 10
 
     def execute(self):
+
+        print("\n- START THE MAGIC -")
         # Get Priorities
         priority_dict = self.get_priorities()
 
@@ -286,96 +305,172 @@ class ObservationScheduler:
             }
             comments = []
 
+            current_mode = MODE_OBSERVING
+
             # get current satellites, sorted by chord
-            current_satellites = self.get_current_satellites(sorted_satellites, ti, sort_col="chord")
-            no_other = len(current_satellites) == 0
+            current_satellites = self.get_current_satellites(sorted_satellites, ti, sort_col=self.sort_col)
+            no_other = len(current_satellites) == 1
 
-            if no_other:
-                comments.append("NO_OTHER_SAT")
+            print("\n--- {} ---\n".format(ti.strftime("%Y-%m-%dT%H:%M")))
 
+            for obj in current_satellites:
+                print(obj[PK_COSPAR], "{:03d}".format(obj["priority"]), "{:.2f}".format(obj["chord"]), obj["folding"], obj["name"])
+
+            print(self._observed_list)
+            
             # Initial Satellite choice
-            if self.__current_satellite is None:
-                self.__current_satellite = current_satellites[0]
-                self._observation_time = 0
+            if self._current_satellite is None:
+                self._current_satellite = current_satellites[0]
+                self._observation_time = -1
+                current_mode = MODE_TURNING
+                comments.append("INITIAL::{}".format(self._current_satellite["name"]))
+
+            print("\nOLD", self.station_folding, self._current_satellite["name"], "# %04d" % self._observation_time)
 
             # What if chosen satellite is not available
-            if self.__current_satellite[PK_COSPAR] not in [j[PK_COSPAR] for j in current_satellites]:
+            do_alternative = False
+            if self._current_satellite[PK_COSPAR] not in [j[PK_COSPAR] for j in current_satellites]:
+                current_mode = MODE_TURNING
                 for satellite in current_satellites:
+                    # just choose a satellite which is not already observerd or if there is no other available
                     if satellite[PK_COSPAR] not in self._observed_list or no_other:
                         # print("Choosed a new, because of no availability")
-                        comments.append("NOT_AVAILIBLE")
-                        current_mode = MODE_TURNING
-                        self.__current_satellite = current_satellites[0]
-                        self._observation_time = 0
+                        s = "NOT_AVAILABLE::{}".format(self._current_satellite["name"])
+                        # print(s)
+                        comments.append(s)
+                        # Reset observation time just if a new satellite will be observed
+                        if self._current_satellite[PK_COSPAR] != satellite[PK_COSPAR]:
+                            self._observation_time = 0   
+                        else:
+                            current_mode = MODE_OBSERVING                     
+                        self._current_satellite = satellite
+                        do_alternative = True
+                        s = "SWITCH::{}".format(self._current_satellite["name"])
+                        # print(s)
+                        comments.append(s)
                         break
+
+            if no_other:
+                self._current_satellite = current_satellites[0]
+                comments.append("NO_OTHER_SAT::{}".format(
+                    current_satellites[0]["name"]
+                ))
 
             for satellite in current_satellites:
-                if self.has_enough_obs():
-                    if satellite[PK_COSPAR] != self.__current_satellite[PK_COSPAR] and \
-                        (satellite[PK_COSPAR] not in self._observed_list or no_other):
-                        # print("Choosed a new, because it was time")
-                        comments.append("TIME_FOR_NEW")
-                        current_mode = MODE_TURNING
-                        self.__current_satellite = satellite
-                        self.add_observed_satellite(self.__current_satellite[PK_COSPAR])
-                        self._observation_time = 0
+                # print(satellite)
+                other_cospar = satellite[PK_COSPAR] != self._current_satellite[PK_COSPAR]
+                same_cospar = not other_cospar
+
+                if do_alternative:
+                    current_mode = MODE_TURNING
+                    break
+
+                # Same Sat, no other, 
+                if same_cospar and no_other:
+                    # print("Keep observing, but has no choice")
+                    current_mode = MODE_OBSERVING
+                    self._current_satellite = satellite
+                    break 
+
+                if self.has_enough_obs() and not no_other:
+
+                    current_mode = MODE_TURNING
+
+                    if other_cospar:
+                        # print("Take next")
+                        self._current_satellite = satellite
+                        self.add_observed_satellite(self._current_satellite[PK_COSPAR])
+                        comments.append("TIME_FOR_NEW::{}".format(self._current_satellite["name"]))
                         break
+
+                # keep measuring, easy part
                 else:
-                    if satellite[PK_COSPAR] == self.__current_satellite[PK_COSPAR]:
-                        self.__current_satellite = satellite
+                    if not other_cospar:
+                        # print("Keep observing")
+                        self._current_satellite = satellite
                         current_mode = MODE_OBSERVING
+                        break
 
-            big_chord = self.__current_satellite["chord"] >= self.__telescope_velocity
+            # Clean folding square
+            print("SAT", self._current_satellite["folding"], self._current_satellite["name"])
 
-            if not no_other and (self.has_enough_obs() or big_chord):
-                # TODO turn telescope as much as possible
-                # print("Turn to", self.__current_satellite["name"])
-                action["target"] = self._station_name
+            delta_folding = self._current_satellite["folding"] - self.station_folding
+            print("DLT ..............azimuth={:11.6f}, elevation={:11.6f}".format(math.degrees(delta_folding.azimuth), math.degrees(delta_folding.elevation)))
+            if math.fabs(delta_folding.azimuth) > math.pi:
+                #delta_folding.azimuth = delta_folding.azimuth - 2 * math.pi
+                turn_direction = math.copysign(1.0, delta_folding.azimuth)
+                delta_folding.azimuth = (math.fabs(delta_folding.azimuth) - 2 * math.pi) * turn_direction
+               
+            if math.fabs(delta_folding.azimuth) > self.__telescope_velocity:
+                comments.append("BIG_AZ")
+            if math.fabs(delta_folding.elevation) > self.__telescope_velocity:
+                comments.append("BIG_EL")
+            # if math.fabs(self._current_satellite["chord"]) > self.__telescope_velocity:
+            #     comments.append("BIG_CH")
+
+            sign_azimuth = math.copysign(1, delta_folding.azimuth)
+            sign_elevation = math.copysign(1, delta_folding.elevation)
+            delta_azimuth = delta_folding.azimuth if math.fabs(delta_folding.azimuth) < self.__telescope_velocity else self.__telescope_velocity * sign_azimuth
+            delta_elevation = delta_folding.elevation if math.fabs(delta_folding.elevation) < self.__telescope_velocity else self.__telescope_velocity * sign_elevation
+
+            big_chord = math.fabs(delta_azimuth) >= self.__telescope_velocity or \
+                math.fabs(delta_elevation) >= self.__telescope_velocity  # or \
+                # self._current_satellite["chord"] >= self.__telescope_velocity
+            new_azimuth = (self.station_folding.azimuth + delta_azimuth) % (2*math.pi)
+            new_elevation = (self.station_folding.elevation + delta_elevation) % (math.pi)
+
+            print("ALT ..............azimuth={:11.6f}, elevation={:11.6f}".format(math.degrees(delta_azimuth), math.degrees(delta_elevation)))
+               
+            if big_chord:
+                current_mode = MODE_TURNING
+                comments.append("FAR_AWAY")
+
+            if self.has_enough_obs() and (not no_other or not do_alternative):
+                current_mode == MODE_TURNING
+
+            if current_mode == MODE_TURNING:
                 self._observation_time = 0
-                # TODO set correct azimuth and elevation
-
-                delta_folding = self.__current_satellite["folding"] - self.station_folding
-
-                sign_azimuth = math.copysign(1, int(delta_folding.azimuth))
-                sign_elevation = math.copysign(1, int(delta_folding.elevation))
-                new_azimuth = delta_folding.azimuth if delta_folding.azimuth < self.__telescope_velocity else self.__telescope_velocity * sign_azimuth
-                new_elevation = delta_folding.elevation if delta_folding.elevation < self.__telescope_velocity else self.__telescope_velocity * sign_elevation
-
-                new_azimuth = (self.station_folding.azimuth + new_azimuth) % (2*math.pi)
-                new_elevation = (self.station_folding.elevation + new_elevation) % (math.pi)
-
-                self.station_folding = FoldingSquare(
-                    azimuth=new_azimuth,
-                    elevation=new_elevation,
-                    distance=self.__current_satellite["folding"].distance
-                )
-
-            else:
-                # TODO turn telescope
-                # current_mode = MODE_OBSERVING
+                action["target"] = self._current_satellite["name"]
+            elif current_mode == MODE_OBSERVING:
                 self._observation_time += 1
-                # set new folding of telescope
-                action["target"] = self.__current_satellite["name"]
-                self.set_station_folding(self.__current_satellite["folding"])
+                action["target"] = self._current_satellite["name"]
+            else:
+                assert True==False, "How did i got here?"
 
-            # print("Station", self.station_folding)
+            self.station_folding = FoldingSquare(
+                azimuth=new_azimuth,
+                elevation=new_elevation,
+                distance=self._current_satellite["folding"].distance
+            )
+
+            print("NEW", self.station_folding, self._current_satellite["name"], "# %04d" % self._observation_time)
+            self.add_observed_satellite(self._current_satellite[PK_COSPAR])
 
             action["mode"] = current_mode
             action["azimuth"] = math.degrees(self.station_folding.azimuth)
             action["elevation"] = math.degrees(self.station_folding.elevation)
             action["observation_time"] = self._observation_time
             action["comments"] = ",".join(comments)
+
+            if action["comments"]:
+                print("\n# {}".format(action["comments"]))
                      
             action_list.append(action)
             i += 1
+        
+        sort_key = ""
+        if self.sort_col in SORT_COL_CHOICES:
+            sort_key = "-{}".format(self.sort_col)
 
         # show performed actions
         outfile = os.path.join(
             self.TLE_DATA_DIR, "results", 
-            self._t_start.strftime("%Y%m%d-observations.csv")
+            self._t_start.strftime("%Y%m%d-observations{}.csv".format(sort_key))
         )
+
         with open(outfile, 'w', newline='') as csvfile:
             fieldnames = [k for k in action_dummy]
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter=";")
             writer.writeheader()
-            writer.writerow(action)
+            for action in action_list:
+                writer.writerow(action)

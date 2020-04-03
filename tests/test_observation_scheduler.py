@@ -3,7 +3,7 @@ import logging
 import math
 import datetime
 
-from prg1.models.observation_scheduler import ObservationScheduler
+from prg1.models.observation_scheduler import ObservationScheduler, SORT_COL_CHORD, SORT_COL_PRIORITY
 from prg1.models.point import GeographicPoint, GeocentricPoint
 #from prg1.models.folding_square import FoldingSquare
 from prg1.utils.point_conversion import convert_cartesian_to_ellipsoidal
@@ -20,12 +20,16 @@ class ObservationSchedulerTestCase(unittest.TestCase):
 
         self.scheduler = ObservationScheduler(
             station_name="Greenbelt",
+            # duration=200,
+            sort_col=SORT_COL_PRIORITY,
+            # skip_known=1,
             station_location=station_geographic,
             station_folding_elevation=math.radians(0.0),
             station_folding_azimuth=math.radians(0.0),
-            t_start=datetime.datetime(2020, 3, 28)
+            t_start=datetime.datetime(2020, 3, 28, 0, 0)
         )
 
     def test_execution(self):
+        # return
         self.scheduler.execute()
         self.assertTrue(False)

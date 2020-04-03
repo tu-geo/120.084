@@ -43,7 +43,7 @@ class FoldingSquare(object):
         )
 
     def __str__(self):
-        return "FoldingSquare(azimuth={:6f}, elevation={:6f}, distance={:3})".format(
+        return "FoldingSquare(azimuth={:11.6f}, elevation={:11.6f}, distance={:15.3f})".format(
             math.degrees(self.azimuth),
             math.degrees(self.elevation),
             1000*self.distance

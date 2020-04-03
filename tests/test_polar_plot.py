@@ -26,7 +26,7 @@ class PolarPlotTestCase(unittest.TestCase):
         self.max_satellites = 1
         self.station_geocentric = GeocentricPoint(x=1130745.549, y=-4831368.033, z=3994077.168)
         # Day of observation
-        self.t_start = datetime.datetime(year=2020, month=3, day=20, hour=0, minute=0, second=0).replace(tzinfo=datetime.timezone.utc)
+        self.t_start = datetime.datetime(year=2020, month=3, day=28, hour=0, minute=0, second=0).replace(tzinfo=datetime.timezone.utc)
         self.sat_filter = ["GALILEO", ]
         self.create_plot = False
 

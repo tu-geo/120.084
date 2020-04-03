@@ -3,6 +3,7 @@ import logging
 import datetime
 import os
 import numpy as np
+import csv
 
 from skyfield.api import Topos, load
 
@@ -14,6 +15,9 @@ from prg1.utils.polar_plot import generate_plot
 from prg1.utils.plot_time import generate_plot as plot_time
 
 
+PK_NORAD = "norad_id"
+PK_COSPAR = "cospar_id"
+
 logger = logging.getLogger(__name__)
 
 
@@ -23,28 +27,66 @@ class SkyFieldTestCase(unittest.TestCase):
 
         # Declaration part
         self.duration = int(1440)  # 24*60
-        self.max_satellites = 1
+        # self.max_satellites = 1
         self.station_geocentric = GeocentricPoint(x=1130745.549, y=-4831368.033, z=3994077.168)
         self.station_geographic = convert_cartesian_to_ellipsoidal(self.station_geocentric)
         # Day of observation
-        self.t_start = datetime.datetime(year=2020, month=3, day=20, hour=0, minute=0, second=0).replace(tzinfo=datetime.timezone.utc)
+        self.t_start = datetime.datetime(year=2020, month=3, day=28, hour=0, minute=0, second=0).replace(tzinfo=datetime.timezone.utc)
         self.t_end = self.t_start + datetime.timedelta(days=1)
         # Where to get TLEs from
         self.this_dir = os.path.dirname(os.path.realpath(__file__))
-        self.test_file = os.path.join(self.this_dir, "20200320-active_satellites.txt")
+        data_dir = os.path.join(
+            os.path.dirname(self.this_dir),
+            "data"
+        )
+        self.test_file = os.path.join(data_dir, self.t_start.strftime("%Y%m%d-active_satellites.txt"))
+        assert os.path.exists(self.test_file)
         self.elevation_filter = 10.0
-        self.duration = 1440
         self.satellite_filter_list = [ ]
         self.create_plot = True
 
-    def __do_work(self, satellite, station):
+        self.priority_file = os.path.join(
+            data_dir, "cleaned",
+            "FINAL_SORT_NORAD.csv"
+        )
+
+    def __get_priorities(self) -> dict:
+        """
+        TODO
+        """
+        priority_dict = {}
+        with open(self.priority_file, "r") as f:
+            csv_reader = csv.reader(f, delimiter=";")
+            # (1, "GRACE-FO-1", 1804701, 43476)
+            for row in csv_reader:
+                if row[0].startswith("#"):
+                    continue
+                if str(row[3]).upper() == "UNKNOWN":
+                    continue
+                #print(row)
+                tmp = {
+                    PK_NORAD: "{:05d}".format(int(row[3])),
+                    PK_COSPAR: row[2],
+                    "priority": int(row[0]),
+                    "name": row[1]
+                }
+                # print(tmp)
+                priority_dict[tmp[PK_NORAD]] = tmp
+        
+        # {norad_id: {PK_NORAD: n_id, "cospar_id": c_id, "priority": p, "name": n}, ...}
+        return priority_dict
+
+    def __do_work(self, satellite, station, sat_info):
         orbit = None
         elevations = []
         azimuths = []
         ts = load.timescale()
+        sat_name = sat_info["name"]
 
-        for time_ticks in range(self.duration):
-            ti = self.t_start + datetime.timedelta(minutes=time_ticks * 1)
+        thin = 1
+
+        for time_ticks in range(int(self.duration/thin)):
+            ti = self.t_start + datetime.timedelta(minutes=time_ticks*thin)
             difference = satellite - station
             geometry = difference.at(ts.utc(ti.year, ti.month, ti.day, ti.hour, ti.minute))
             alt, az, distance = geometry.altaz()
@@ -58,10 +100,10 @@ class SkyFieldTestCase(unittest.TestCase):
         np_a[np_e < 10] = np.nan
 
         if len(np.extract(np_e >= self.elevation_filter, np_e)) > 0:
-            orbit = Orbit(satellite.name, np_a, np_e)
+            orbit = Orbit(sat_name, np_a, np_e)
 
-        if not orbit is None:
-            print("Satellite {} not on Greenbelt's sky".format(satellite.name))
+        if orbit is None:
+            print("Satellite {} not on Greenbelt's sky".format(sat_name))
 
         return orbit
 
@@ -77,24 +119,40 @@ class SkyFieldTestCase(unittest.TestCase):
 
         i = 0
 
-        with open(os.path.join(self.this_dir, "__skyfield_rise_and_set.log"), "w") as skyfield_file:
+        priority_dict = self.__get_priorities()
+        priority_list = [priority_dict[j][PK_NORAD] for j in priority_dict]
+        recorded_ids = []
+
+        with open(
+            os.path.join(
+                self.this_dir,
+                self.t_start.strftime("%Y%m%d-skyfield-rise_and_set.log")
+            ),
+            "w") as skyfield_file:
 
             window_list_all = []
 
             for satellite_name in satellites:
-                i += 1
 
-                do_process = len(self.satellite_filter_list) == 0
-                for f in self.satellite_filter_list:
-                    do_process = do_process or f in str(satellite_name)
-
-                if i > self.max_satellites:
-                    continue
-
-                if not do_process:
+                if isinstance(satellite_name, int):
                     continue
 
                 satellite = satellites[satellite_name]
+                norad_id = "{:05d}".format(int(satellite.model.satnum))
+                
+                if norad_id not in priority_list:
+                    continue
+
+                if norad_id in recorded_ids:
+                    continue
+
+                recorded_ids.append(norad_id)
+
+                sat_info = {}
+                for j in priority_dict:
+                    if priority_dict[j][PK_NORAD] == norad_id:
+                        sat_info = priority_dict[j]
+                        break
 
                 window_list_sat = []
 
@@ -129,17 +187,20 @@ class SkyFieldTestCase(unittest.TestCase):
 
                 if window_list_sat:
                     window_list_all.append({
-                        "satellite": satellite_name,
-                        "windows": window_list_sat
+                        "satellite": sat_info["name"],
+                        "windows": window_list_sat,
+                        "priority": sat_info["priority"]
                     })
 
-        # plot_time(window_list_all)
+        window_list_all = sorted(window_list_all, key=lambda k: (k["priority"], k["satellite"]), reverse=True)
+
+        if self.create_plot:
+            plot_time(window_list_all, bar_height=10)
 
         self.assertTrue(False)
 
 
-    def test_create_topo(self):
-        return
+    def test_create_sky(self):
         station = Topos(
             latitude_degrees=self.station_geographic.lat,
             longitude_degrees=self.station_geographic.lon
@@ -150,27 +211,48 @@ class SkyFieldTestCase(unittest.TestCase):
         satellite_counter = 0
         orbit_list = []
 
+        priority_dict = self.__get_priorities()
+        priority_list = [priority_dict[j][PK_NORAD] for j in priority_dict]
+        recorded_ids = []
+
+        i = 0
+
         for satellite_name in satellites:
 
-            if len(orbit_list) >= self.max_satellites:
-                break
+            i += 1
 
-            do_process = len(self.satellite_filter_list) == 0
-            for f in self.satellite_filter_list:
-                do_process = do_process or f in str(satellite_name)
-
-            if not do_process:
+            if isinstance(satellite_name, int):
                 continue
 
-            print("Processing {}".format(satellite_name))
+            satellite = satellites[satellite_name]
+            norad_id = "{:05d}".format(int(satellite.model.satnum))
+            
+            if norad_id not in priority_list:
+                continue
+
+            if norad_id in recorded_ids:
+                continue
+
+            recorded_ids.append(norad_id)
+
+            sat_info = {}
+            for j in priority_dict:
+                if priority_dict[j][PK_NORAD] == norad_id:
+                    sat_info = priority_dict[j]
+                    break
     
             satellite = satellites[satellite_name]
-            orbit = self.__do_work(satellite, station)
+            orbit = self.__do_work(satellite, station, sat_info)
             if orbit is not None:
-                orbit_list.append(orbit)
+                orbit_list.append({
+                    "priority": sat_info["priority"],
+                    "name": sat_info["name"],
+                    "orbit": orbit
+                })
 
         if orbit_list and self.create_plot:
-            generate_plot(orbit_list=orbit_list, show_plot=self.create_plot)
+            orbit_list = sorted(orbit_list, key=lambda k: (k["priority"], k["name"]), reverse=False)
+            generate_plot(orbit_list=[o["orbit"] for o in orbit_list], show_plot=self.create_plot)
 
         self.assertTrue(False)
 

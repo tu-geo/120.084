@@ -1,11 +1,12 @@
 import matplotlib.pyplot as plt
 import matplotlib.dates as md
-
 import datetime
 import numpy as np
 
+from prg1.utils.cmap import discrete_cmap
 
-def generate_plot(window_list, show_plot=True):
+
+def generate_plot(window_list, show_plot=True, bar_height=5, bar_space=1):
 
     fig, ax = plt.subplots()
 
@@ -15,14 +16,13 @@ def generate_plot(window_list, show_plot=True):
     y_tick_labels = []
     y_ticks = []
 
-    bar_height = 8
-    bar_space = 1
+    cmap = discrete_cmap(len(window_list))
 
     bar_dist = bar_height + bar_space
 
     for i, sat in enumerate(window_list):
         y_tick_labels.append(sat["satellite"])
-        ax.broken_barh([(t[0], t[1] - t[0]) for t in sat["windows"]], ((i + 1) * (bar_dist), bar_height))
+        ax.broken_barh([(t[0], t[1] - t[0]) for t in sat["windows"]], ((i + 1) * (bar_dist), bar_height), color=cmap(i))
         y_ticks.append((i + 1) * bar_dist)
         
     ax.grid(True)
