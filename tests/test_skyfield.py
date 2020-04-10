@@ -11,24 +11,37 @@ from prg1.models.orbit import Orbit
 from prg1.models.point import GeocentricPoint
 from prg1.utils.point_conversion import convert_ellipsoidal_to_cartesian, \
     convert_cartesian_to_ellipsoidal
-from prg1.utils.polar_plot import generate_plot
+from prg1.utils.plot_polar import generate_plot as plot_sky
 from prg1.utils.plot_time import generate_plot as plot_time
-
-
-PK_NORAD = "norad_id"
-PK_COSPAR = "cospar_id"
+from prg1.utils.constants import PK_NORAD, PK_COSPAR
 
 logger = logging.getLogger(__name__)
 
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+
+planets = load(
+    os.path.join(
+        ROOT_DIR,
+        'de421.bsp'
+    )
+)
 
 class SkyFieldTestCase(unittest.TestCase):
 
     def setUp(self):
 
+        self.skip_run = True
+
         # Declaration part
         self.duration = int(1440)  # 24*60
         # self.max_satellites = 1
+        self.intervall = 1
+        # NSGSLR
         self.station_geocentric = GeocentricPoint(x=1130745.549, y=-4831368.033, z=3994077.168)
+
+        # SISL
+        # self.station_geocentric = GeocentricPoint(x=-3822388.355, y=3699363.566, z=3507573.117)
+
         self.station_geographic = convert_cartesian_to_ellipsoidal(self.station_geocentric)
         # Day of observation
         self.t_start = datetime.datetime(year=2020, month=3, day=28, hour=0, minute=0, second=0).replace(tzinfo=datetime.timezone.utc)
@@ -44,6 +57,13 @@ class SkyFieldTestCase(unittest.TestCase):
         self.elevation_filter = 10.0
         self.satellite_filter_list = [ ]
         self.create_plot = True
+
+        topo = Topos(
+            latitude_degrees=self.station_geographic.lat,
+            longitude_degrees=self.station_geographic.lon
+        )
+
+        self.station = topo
 
         self.priority_file = os.path.join(
             data_dir, "cleaned",
@@ -83,13 +103,28 @@ class SkyFieldTestCase(unittest.TestCase):
         ts = load.timescale()
         sat_name = sat_info["name"]
 
-        thin = 1
+        thin = self.intervall
 
         for time_ticks in range(int(self.duration/thin)):
-            ti = self.t_start + datetime.timedelta(minutes=time_ticks*thin)
+            ti = self.t_start + datetime.timedelta(minutes=time_ticks * thin)
+            t = ts.utc(ti.year, ti.month, ti.day, ti.hour, ti.minute)
             difference = satellite - station
-            geometry = difference.at(ts.utc(ti.year, ti.month, ti.day, ti.hour, ti.minute))
+            geometry = difference.at(t)
+            # print("Sation: ")
+            # print(station)
+            # print("Satellite:")
+            # print(satellite.at(t))
+            # print("Difference:")
+            # print(difference)
+            # print("Geometry:")
+            # print(geometry.position.km)
             alt, az, distance = geometry.altaz()
+            # print("\nSat:")
+            # print(satellite.at(t).subpoint())
+            # print("\nStation:")
+            # print(station)
+            # astrometric = station.at(t).observe(satellite)
+            # alt, az, distance = astrometric.apparent().altaz()
             # print(ti, alt.degrees, az.degrees)
             elevations.append(alt.degrees)
             azimuths.append(az.degrees)
@@ -107,11 +142,11 @@ class SkyFieldTestCase(unittest.TestCase):
 
         return orbit
 
-    def test_rise_and_set(self):
-        station = Topos(
-            latitude_degrees=self.station_geographic.lat,
-            longitude_degrees=self.station_geographic.lon
-        )
+    def test_plot_time(self):
+
+        if self.skip_run:
+            return
+
         ts = load.timescale()
         t0 = ts.utc(self.t_start.year, self.t_start.month, self.t_start.day)
         t1 = ts.utc(self.t_end.year, self.t_end.month, self.t_end.day)
@@ -156,7 +191,7 @@ class SkyFieldTestCase(unittest.TestCase):
 
                 window_list_sat = []
 
-                t, events = satellite.find_events(station, t0, t1, altitude_degrees=self.elevation_filter)
+                t, events = satellite.find_events(self.station, t0, t1, altitude_degrees=self.elevation_filter)
                 window = []
 
                 for ti, event in zip(t, events):
@@ -187,12 +222,12 @@ class SkyFieldTestCase(unittest.TestCase):
 
                 if window_list_sat:
                     window_list_all.append({
-                        "satellite": sat_info["name"],
+                        "name": sat_info["name"],
                         "windows": window_list_sat,
                         "priority": sat_info["priority"]
                     })
 
-        window_list_all = sorted(window_list_all, key=lambda k: (k["priority"], k["satellite"]), reverse=True)
+        window_list_all = sorted(window_list_all, key=lambda k: (k["priority"], k["name"]), reverse=True)
 
         if self.create_plot:
             plot_time(window_list_all, bar_height=10)
@@ -200,13 +235,11 @@ class SkyFieldTestCase(unittest.TestCase):
         self.assertTrue(False)
 
 
-    def test_create_sky(self):
-        station = Topos(
-            latitude_degrees=self.station_geographic.lat,
-            longitude_degrees=self.station_geographic.lon
-        )
-        print("\n", station)
+    def test_plot_sky(self):
         
+        if self.skip_run:
+            return
+
         satellites = load.tle(self.test_file)
         satellite_counter = 0
         orbit_list = []
@@ -242,7 +275,7 @@ class SkyFieldTestCase(unittest.TestCase):
                     break
     
             satellite = satellites[satellite_name]
-            orbit = self.__do_work(satellite, station, sat_info)
+            orbit = self.__do_work(satellite, self.station, sat_info)
             if orbit is not None:
                 orbit_list.append({
                     "priority": sat_info["priority"],
@@ -252,7 +285,7 @@ class SkyFieldTestCase(unittest.TestCase):
 
         if orbit_list and self.create_plot:
             orbit_list = sorted(orbit_list, key=lambda k: (k["priority"], k["name"]), reverse=False)
-            generate_plot(orbit_list=[o["orbit"] for o in orbit_list], show_plot=self.create_plot)
+            plot_sky(orbit_list=[o["orbit"] for o in orbit_list], show_plot=self.create_plot)
 
         self.assertTrue(False)
 

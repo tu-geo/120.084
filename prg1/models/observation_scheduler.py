@@ -8,9 +8,8 @@ import glob
 from skyfield.api import Topos, load
 from prg1.models.point import GeographicPoint
 from prg1.models.folding_square import FoldingSquare
+from prg1.utils.constants import PK_NORAD, PK_COSPAR
 
-PK_NORAD = "norad_id"
-PK_COSPAR = "cospar_id"
 
 MODE_TURNING = "trn"
 MODE_OBSERVING = "obs"
@@ -20,6 +19,16 @@ SORT_COL_CHORD = "chord"
 SORT_COL_CHOICES = [SORT_COL_PRIORITY, SORT_COL_CHORD]
 
 BIG_VALUE = 9999999
+
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+
+planets = load(
+    os.path.join(
+        ROOT_DIR,
+        'de421.bsp'
+    )
+)
+
 
 
 class ObservationScheduler:
@@ -63,7 +72,9 @@ class ObservationScheduler:
         self.elevation_cutoff = elevation_cutoff  # degrees
         self._timescale = load.timescale()
         self.sort_col = kwargs.get("sort_col", None)
+        self.__main_planet = kwargs.get("main_planet", "earth")
         # self.max_satellites = 15
+        self.__intervall = kwargs.get("intervall", 1)
         self.skip_known = kwargs.get("skip_known", 0)
         assert isinstance(self.skip_known, int)
 
@@ -112,7 +123,7 @@ class ObservationScheduler:
                 longitude_degrees=location.lon,
                 elevation_m=location.ele
             )
-            return self._station_topo
+            return planets[self.__main_planet] + self._station_topo
         return self._station_topo
 
     def add_observed_satellite(self, cospar_id):
@@ -251,8 +262,27 @@ class ObservationScheduler:
     def has_enough_obs(self):
         return self._observation_time >= 10
 
-    def execute(self):
+    def execute(self) -> list:
+        """
+        Compute Action plan. Dict format:
 
+        {
+            "timestamp": datetime.datetime,
+            "mode": str,
+            "azimuth": float,
+            "elevation": float,
+            "target": str,
+            "observation_time": int,
+            "total_minutes": int,
+            "comments": str,
+            "priority": int,
+            "cospar_id": str,
+            "norad_id": str
+        }
+
+        :returns: List of fullfilled actions
+        :rtype: list
+        """
         print("\n- START THE MAGIC -")
         # Get Priorities
         priority_dict = self.get_priorities()
@@ -276,16 +306,13 @@ class ObservationScheduler:
         action_list = []
         i = 0
 
-        action_dummy = {
-            "timestamp": None,
-            "mode": None,
-            "azimuth": None,
-            "elevation": None,
-            "target": None,
-            "observation_time": None,
-            "total_minutes": None,
-            "comments": None
-        }
+        action_fields = [
+            "timestamp", "mode",
+            "azimuth", "elevation",
+            "target", "observation_time", "total_minutes",
+            "comments", "priority",
+            PK_COSPAR, PK_NORAD,
+        ]
 
         while i < self._duration:
 
@@ -298,10 +325,13 @@ class ObservationScheduler:
                 "mode": None,
                 "azimuth": None,
                 "elevation": None,
-                "target": None,
+                "target": MODE_TURNING.upper(),
                 "observation_time": None,
                 "total_minutes": i,
-                "comments": None
+                "comments": None,
+                "priority": None,
+                PK_COSPAR: None,
+                PK_NORAD: None,
             }
             comments = []
 
@@ -313,10 +343,10 @@ class ObservationScheduler:
 
             print("\n--- {} ---\n".format(ti.strftime("%Y-%m-%dT%H:%M")))
 
-            for obj in current_satellites:
-                print(obj[PK_COSPAR], "{:03d}".format(obj["priority"]), "{:.2f}".format(obj["chord"]), obj["folding"], obj["name"])
+            #for obj in current_satellites:
+            #    print(obj[PK_COSPAR], "{:03d}".format(obj["priority"]), "{:.2f}".format(obj["chord"]), obj["folding"], obj["name"])
 
-            print(self._observed_list)
+            # print(self._observed_list)
             
             # Initial Satellite choice
             if self._current_satellite is None:
@@ -325,7 +355,7 @@ class ObservationScheduler:
                 current_mode = MODE_TURNING
                 comments.append("INITIAL::{}".format(self._current_satellite["name"]))
 
-            print("\nOLD", self.station_folding, self._current_satellite["name"], "# %04d" % self._observation_time)
+            # print("\nOLD", self.station_folding, self._current_satellite["name"], "# %04d" % self._observation_time)
 
             # What if chosen satellite is not available
             do_alternative = False
@@ -392,10 +422,10 @@ class ObservationScheduler:
                         break
 
             # Clean folding square
-            print("SAT", self._current_satellite["folding"], self._current_satellite["name"])
+            # print("SAT", self._current_satellite["folding"], self._current_satellite["name"])
 
             delta_folding = self._current_satellite["folding"] - self.station_folding
-            print("DLT ..............azimuth={:11.6f}, elevation={:11.6f}".format(math.degrees(delta_folding.azimuth), math.degrees(delta_folding.elevation)))
+            # print("DLT ..............azimuth={:11.6f}, elevation={:11.6f}".format(math.degrees(delta_folding.azimuth), math.degrees(delta_folding.elevation)))
             if math.fabs(delta_folding.azimuth) > math.pi:
                 #delta_folding.azimuth = delta_folding.azimuth - 2 * math.pi
                 turn_direction = math.copysign(1.0, delta_folding.azimuth)
@@ -419,7 +449,7 @@ class ObservationScheduler:
             new_azimuth = (self.station_folding.azimuth + delta_azimuth) % (2*math.pi)
             new_elevation = (self.station_folding.elevation + delta_elevation) % (math.pi)
 
-            print("ALT ..............azimuth={:11.6f}, elevation={:11.6f}".format(math.degrees(delta_azimuth), math.degrees(delta_elevation)))
+            # print("ALT ..............azimuth={:11.6f}, elevation={:11.6f}".format(math.degrees(delta_azimuth), math.degrees(delta_elevation)))
                
             if big_chord:
                 current_mode = MODE_TURNING
@@ -430,10 +460,16 @@ class ObservationScheduler:
 
             if current_mode == MODE_TURNING:
                 self._observation_time = 0
-                action["target"] = self._current_satellite["name"]
+                # action["target"] = self._current_satellite["name"]
+                action["priority"] = 9999
+
             elif current_mode == MODE_OBSERVING:
                 self._observation_time += 1
                 action["target"] = self._current_satellite["name"]
+                action["priority"] = self._current_satellite["priority"]
+                action[PK_COSPAR] = self._current_satellite[PK_COSPAR]
+                action[PK_NORAD] = self._current_satellite[PK_NORAD]
+                comments.append("OBS::{}".format(self._current_satellite["name"]))
             else:
                 assert True==False, "How did i got here?"
 
@@ -443,7 +479,7 @@ class ObservationScheduler:
                 distance=self._current_satellite["folding"].distance
             )
 
-            print("NEW", self.station_folding, self._current_satellite["name"], "# %04d" % self._observation_time)
+            # print("NEW", self.station_folding, self._current_satellite["name"], "# %04d" % self._observation_time)
             self.add_observed_satellite(self._current_satellite[PK_COSPAR])
 
             action["mode"] = current_mode
@@ -456,7 +492,7 @@ class ObservationScheduler:
                 print("\n# {}".format(action["comments"]))
                      
             action_list.append(action)
-            i += 1
+            i += self.__intervall
         
         sort_key = ""
         if self.sort_col in SORT_COL_CHOICES:
@@ -465,12 +501,14 @@ class ObservationScheduler:
         # show performed actions
         outfile = os.path.join(
             self.TLE_DATA_DIR, "results", 
-            self._t_start.strftime("%Y%m%d-observations{}.csv".format(sort_key))
+            self._t_start.strftime("%Y%m%d-observations{}-{:02d}.csv".format(sort_key, self.__intervall))
         )
 
         with open(outfile, 'w', newline='') as csvfile:
-            fieldnames = [k for k in action_dummy]
+            fieldnames = action_fields
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter=";")
             writer.writeheader()
             for action in action_list:
                 writer.writerow(action)
+
+        return action_list

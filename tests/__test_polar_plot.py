@@ -9,7 +9,7 @@ from prg1.models.point import GeocentricPoint
 from prg1.models.kepler_element_set import KeplerElementSet
 from prg1.models.nuisance_parameter_set import NuisanceParameterSet
 from prg1.utils.constants import *
-from prg1.utils.polar_plot import generate_plot
+from prg1.utils.plot_polar import generate_plot
 from prg1.utils.orbit_to_cart import orbit_to_cart, orbit_to_geograpic_springer
 from prg1.utils.time_conversion import calculate_theta
 from prg1.utils.angle_conversion import rad_to_deg
